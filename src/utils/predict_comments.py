@@ -30,9 +30,9 @@ def add_numeric_features_single(text):
     return [char_count, word_count, num_uppercase, num_exclamation, num_question, has_swear]
 
 
-model = joblib.load("models/saved/xgboost.pkl")
-vectorizer = joblib.load("models/saved/vectorizer.pkl")
-le = joblib.load("models/saved/label_encoder.pkl")
+model = joblib.load("models/saved/classical/xgboost.pkl")
+vectorizer = joblib.load("models/saved/classical/vectorizer.pkl")
+le = joblib.load("models/saved/classical/label_encoder.pkl")
 
 print("Comment Moderation Interactive Tool")
 print("Type your comment and press Enter. Type 'exit' to quit.\n")
