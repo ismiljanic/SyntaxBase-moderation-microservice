@@ -142,11 +142,11 @@ for name, model in models.items():
 # -----------------------------
 # Save Models & Vectorizer
 # -----------------------------
-os.makedirs("models/saved", exist_ok=True)
+os.makedirs("models/saved/classical", exist_ok=True)
 for name, model in models.items():
-    file_name = f"models/saved/{name.lower().replace(' ','_')}.pkl"
+    file_name = f"models/saved/classical/{name.lower().replace(' ','_')}.pkl"
     joblib.dump(model, file_name)
 
-joblib.dump(vectorizer, "models/saved/vectorizer.pkl")
-joblib.dump(le, "models/saved/label_encoder.pkl")
+joblib.dump(vectorizer, "models/saved/classical/vectorizer.pkl")
+joblib.dump(le, "models/saved/classical/label_encoder.pkl")
 print("\nModels, vectorizer, and label encoder saved in models/saved/")
