@@ -3,3 +3,5 @@ data/raw/*.csv
 data/processed/*.csv
 .DS_Store
 __pycache__/
+checkpoint-17500/
+models/saved/bert/model.safetensors
