@@ -5,3 +5,4 @@ data/processed/*.csv
 __pycache__/
 checkpoint-17500/
 models/saved/bert/model.safetensors
+models/saved/toxic_bert

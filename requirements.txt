@@ -6,3 +6,6 @@ scipy
 matplotlib
 seaborn
 xgboost
+tiktoken>=0.7.0
+protobuf>=5.27.0
+sentencepiece>=0.2.0
