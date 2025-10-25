@@ -19,6 +19,8 @@ from transformers import AutoConfig, AutoModelForSequenceClassification
 # -----------------------------
 DATA_PATH = "data/processed/jigsaw_multilevel_features.csv"
 OUTPUT_DIR = "models/saved/toxic_bert"
+LATEST_CHECKPOINT = "models/saved/toxic_bert/checkpoint-3500"
+
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 # -----------------------------
@@ -147,9 +149,13 @@ trainer = Trainer(
 )
 
 # -----------------------------
-# Train
+# Train (resume if checkpoint)
 # -----------------------------
-trainer.train()
+if LATEST_CHECKPOINT and os.path.exists(LATEST_CHECKPOINT):
+    print(f"Resuming full training state from checkpoint: {LATEST_CHECKPOINT}")
+    trainer.train(resume_from_checkpoint=LATEST_CHECKPOINT)
+else:
+    trainer.train()
 
 # -----------------------------
 # Evaluate & Save
