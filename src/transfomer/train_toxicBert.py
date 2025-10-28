@@ -19,7 +19,7 @@ from transformers import AutoConfig, AutoModelForSequenceClassification
 # -----------------------------
 DATA_PATH = "data/processed/jigsaw_multilevel_features.csv"
 OUTPUT_DIR = "models/saved/toxic_bert"
-LATEST_CHECKPOINT = "models/saved/toxic_bert/checkpoint-3500"
+LATEST_CHECKPOINT = "models/saved/toxic_bert/checkpoint-8500"
 
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
@@ -47,7 +47,7 @@ train_ds = Dataset.from_pandas(train_df)
 test_ds = Dataset.from_pandas(test_df)
 
 # -----------------------------
-# Tokenizer
+# Tokenizer 
 # -----------------------------
 MODEL_NAME = "unitary/toxic-bert"
 tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
@@ -165,7 +165,7 @@ print("Evaluation results:", results)
 
 trainer.save_model(OUTPUT_DIR)
 tokenizer.save_pretrained(OUTPUT_DIR)
-joblib.dump(label2id, os.path.join(OUTPUT_DIR, "label2id.pkl"))
-joblib.dump(id2label, os.path.join(OUTPUT_DIR, "id2label.pkl"))
+joblib.dump(label2id, os.path.join(OUTPUT_DIR, "label2idToxicBERT.pkl"))
+joblib.dump(id2label, os.path.join(OUTPUT_DIR, "id2labelToxicBERT.pkl"))
 
 print("Training complete. Model and label maps saved.")
