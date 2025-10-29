@@ -11,38 +11,71 @@ SyntaxBase-moderation-microservice/
 ├── data/
 │ ├── raw/
 │ └── processed/
+│ └── test/
+│ └── utils/
+|
+├── docs/
+│ └── architecture.md
+│ └── docs.md
+│ └── index.md
+│ └── research_paper.md
+│ └── training_logs.md
 │
 ├── models/
 │ └── saved/
+│   └── bert/
+|   └── classical/
+|   └── toxic_bert/
 │
 ├── notebooks/
 │ └── 01_baseline_experiments.ipynb
+│ └── 02_distilbert_experiments.ipynb
+│ └── 03_toxicbert_experiments.ipynb
+│ └── 04_model_comparison.ipynb
+│ └── 05_error_analysis.ipynb
+|
+├── results/
+│ └── comparisons/
+│ └── logs/
+|   └── classical/
+|   └── transformer/
+|       └── distil_bert/
+|       └── toxic_bert/
+│ └── metrics/
+│ └── visuals/
 │
 ├── src/
+│ ├── classical/
+│ ├── llm/
+│ ├── transformer/
 │ ├── utils/
-│ │ ├── preprocessing.py
+│ │ └── evaluate_checkpoints.py
+│ │ └── evaluate_models.py
+│ │ └── predict_comments_bert.py
 │ │ └── predict_comments.py
+│ │ ├── preprocessing.py
 │
-├── docs/
+├── .gitattributes
 ├── .gitignore
+├── LICENSE
 ├── README.md
 └── requirements.txt
-
 ```
 
 ## Features
 
-- **Multilevel toxicity classification**: safe, mild, toxic, severe
-- **TF-IDF text features** for capturing word patterns and n-grams
-- **Numeric features**: character count, word count, capitalization, punctuation
-- **Swear word detection**
-- **Interactive CLI** for live comment moderation
-- **Experiment tracking** through Jupyter notebooks
+- **Multilevel toxicity classification**: safe, mild, toxic, severe  
+- **Classical ML baseline**: TF-IDF + numeric features (char count, word count, capitalization, punctuation, swear word detection)  
+- **Transformer-based models**: DistilBERT, ToxicBERT  
+- **Interactive CLI** for live comment moderation  
+- **Experiment tracking** through Jupyter notebooks  
 
-**Planned future enhancements:**
+**Planned / Future Enhancements:**
 
-- Hybrid framework combining **rule-based**, **transformer-based**, and **LLM reasoning** for scalable online toxicity detection.  
-- Support for open-source LLMs like **LLaMA3** for context-aware moderation.  
+- Hybrid framework combining **rule-based**, **transformer-based**, and **LLM reasoning** (Phase 3)  
+- Open-source LLM support: **LLaMA3**, **Mistral**, **Phi-4** for context-aware moderation  
+- REST API for web integration and production deployment  
+- Advanced monitoring and retraining with MLflow or Weights & Biases  
 
 ---
 
