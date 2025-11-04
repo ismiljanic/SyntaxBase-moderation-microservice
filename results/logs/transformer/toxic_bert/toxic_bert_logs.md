@@ -56,6 +56,22 @@
 - Runtime: ~ 45min
 - Best model: `checkpoint-16500`
 
+### Run 7
+- Resumed from: `checkpoint-28500`  
+- Steps: 28,500 → 33,500
+- Accuracy: 0.9526510403609927
+- Macro F1: 0.7306449290083961
+- Runtime: ~ 45min
+- Best model: `checkpoint-16500`
+
+### Run 8
+- Resumed from: `checkpoint-33500`  
+- Steps: 33,500 → 38,500
+- Accuracy: 0.9526510403609927
+- Macro F1: 0.7306449290083961
+- Runtime: ~ 45min
+- Best model: `checkpoint-16500`
+
 ---
 
 ## Observations
