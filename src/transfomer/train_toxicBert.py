@@ -19,7 +19,7 @@ from transformers import AutoConfig, AutoModelForSequenceClassification
 # -----------------------------
 DATA_PATH = "data/processed/jigsaw_multilevel_features.csv"
 OUTPUT_DIR = "models/saved/toxic_bert"
-LATEST_CHECKPOINT = "models/saved/toxic_bert/checkpoint-42000"
+LATEST_CHECKPOINT = "models/saved/toxic_bert/checkpoint-47500"
 
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
