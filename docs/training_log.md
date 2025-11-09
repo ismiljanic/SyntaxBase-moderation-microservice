@@ -150,6 +150,14 @@ This document records all training runs, their configurations, checkpoints, and 
 - Runtime: ~ 45min
 - Best model: `checkpoint-48000`
 
+### Run 12
+- Resumed from: `checkpoint-52500`  
+- Steps: 52,500 → 57,500
+- Accuracy: 0.9555339684131361
+- Macro F1: 0.7359447534294354
+- Runtime: ~ 45min
+- Best model: `checkpoint-48000`
+
 ---
 
 # TODO Phase 3 – LLM Comparative Evaluation
