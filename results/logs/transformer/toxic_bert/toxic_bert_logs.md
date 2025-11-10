@@ -104,6 +104,14 @@
 - Runtime: ~ 45min
 - Best model: `checkpoint-48000`
 
+### Run 13 - Final run
+- Resumed from: `checkpoint-57500`  
+- Steps: 57,500 → 63,824
+- Accuracy: 0.9555339684131361
+- Macro F1: 0.7359447534294354
+- Runtime: ~ 45min
+- Best model: `checkpoint-48000`
+
 ---
 
 ## Observations
