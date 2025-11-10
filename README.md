@@ -36,6 +36,7 @@ SyntaxBase-moderation-microservice/
 |
 ├── results/
 │ └── comparisons/
+|   └── bert/
 │ └── logs/
 |   └── classical/
 |   └── transformer/
@@ -49,9 +50,13 @@ SyntaxBase-moderation-microservice/
 │ ├── llm/
 │ ├── transformer/
 │ ├── utils/
+│ │ └── generate_comments/
+│ │     └── all_round_comments.py # general comments from various sources
+│ │     └── forum_based_comments.py # comments that will likely be in forum
+│ │ └── evaluate_both_models.py
 │ │ └── evaluate_checkpoints.py
-│ │ └── evaluate_models.py
 │ │ └── predict_comments_bert.py
+│ │ └── predict_comments_toxicbert.py
 │ │ └── predict_comments.py
 │ │ ├── preprocessing.py
 │
