@@ -9,10 +9,10 @@ from transformers import (
     Trainer,
     TrainingArguments,
     AutoTokenizer,
+    AutoConfig,
     AutoModelForSequenceClassification
 )
 import evaluate
-from transformers import AutoConfig, AutoModelForSequenceClassification
 
 # -----------------------------
 # Paths
