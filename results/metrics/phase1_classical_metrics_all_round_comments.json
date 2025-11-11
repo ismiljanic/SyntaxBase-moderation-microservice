@@ -1,0 +1,11 @@
+{
+    "model": "Classical_XGBoost",
+    "accuracy": 0.46875,
+    "macro_f1": 0.45803167420814483,
+    "per_class_f1": {
+        "mild": 0.5,
+        "safe": 0.46153846153846156,
+        "severe": 0.4,
+        "toxic": 0.47058823529411764
+    }
+}
