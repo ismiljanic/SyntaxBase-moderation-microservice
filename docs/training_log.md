@@ -29,6 +29,10 @@ This document records all training runs, their configurations, checkpoints, and 
 **Hardware:** Mac M1 Max (MPS backend)  
 **Training Script:** `src/transformer/train_distilBert.py`  
 **Checkpoint Directory:** `models/saved/bert/`  
+**Runtime:** ~3h  
+**Results:**
+- Accuracy: 0.9546  
+- Macro F1: 0.6837  
 
 ### Run 1
 - Steps: 0 → 10,000  
@@ -57,10 +61,15 @@ This document records all training runs, their configurations, checkpoints, and 
 **Goal:** Measure domain-specific pretraining benefits over generic DistilBERT.  
 **Expectation:** +4–10% macro F1 improvement on toxic/severe categories.
 
-**Date:** 2025-10-23 → ...  
+**Date:** 2025-10-23 → 2025-11-10  
 **Hardware:** Mac M1 Max (MPS backend)  
 **Training Script:** `src/transformer/train_toxicBert.py`  
 **Checkpoint Directory:** `models/saved/toxic_bert/`  
+**Runtime:** ~9.5h 
+**Results:**
+- Accuracy: 0.9555339684131361  
+- Macro F1: 0.7359447534294354  
+
 **Notes:** training in smaller batches each around 5000 steps (45min - 1h) out of total 63824 steps
 
 
@@ -236,6 +245,7 @@ This document records all training runs, their configurations, checkpoints, and 
 |--------|-----------|-----------|--------------------------|---------|
 | TF-IDF + XGBoost | 0.8758 | 0.6393 | 0.001 | ~1.2 M |
 | DistilBERT (Fine-tuned) | 0.9546 | 0.6837 | 0.05 | ~66 M |
+| ToxicBERT | 0.955533 | 0.735944 | 0.05 | ~110 M |
 | LLaMA 3.1 8B Instruct |     |     |     |     |
 | Mistral 7B Instruct |     |     |     |     |
 | Phi-4 (LoRA) |     |     |     |     |
