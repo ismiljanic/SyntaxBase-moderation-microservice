@@ -1,25 +1,25 @@
 === ToxicBERT ===
               precision    recall  f1-score   support
 
-        mild       0.88      0.64      0.74        11
-        safe       0.82      1.00      0.90        18
-      severe       1.00      1.00      1.00         2
-       toxic       1.00      0.50      0.67         2
+        mild       0.75      0.33      0.46        36
+        safe       0.68      1.00      0.81        58
+      severe       1.00      1.00      1.00         4
+       toxic       1.00      0.59      0.74        17
 
-    accuracy                           0.85        33
-   macro avg       0.92      0.78      0.83        33
-weighted avg       0.86      0.85      0.84        33
+    accuracy                           0.73       115
+   macro avg       0.86      0.73      0.75       115
+weighted avg       0.76      0.73      0.70       115
 
 
 === DistilBERT ===
               precision    recall  f1-score   support
 
-        mild       0.86      0.55      0.67        11
-        safe       0.78      1.00      0.88        18
-      severe       1.00      1.00      1.00         2
-       toxic       1.00      0.50      0.67         2
+        mild       0.62      0.36      0.46        36
+        safe       0.71      1.00      0.83        58
+      severe       1.00      0.75      0.86         4
+       toxic       0.89      0.47      0.62        17
 
-    accuracy                           0.82        33
-   macro avg       0.91      0.76      0.80        33
-weighted avg       0.83      0.82      0.80        33
+    accuracy                           0.71       115
+   macro avg       0.80      0.65      0.69       115
+weighted avg       0.72      0.71      0.68       115
 
