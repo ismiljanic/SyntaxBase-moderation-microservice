@@ -175,14 +175,37 @@ This document records all training runs, their configurations, checkpoints, and 
 - Runtime: ~ 45min
 - Best model: `checkpoint-48000`
 
+
+## Phase 3 – LLM reasoning with meta-llama-3.1-8b-instruct  
+**Date:** 2025-11-15  
+**Hardware:** Mac M1 Max, 32GB RAM, CPU only  
+**Dataset:** Combined forum comment batches (~115 comments)  
+**Description:** Prompt-based classification with meta-llama-3.1-8b-instruct  
+**Runtime:** ~1 minute  
+
+**Results:**
+- Accuracy: 0.78  
+- Macro F1: 0.82  
+- Weighted F1: 0.77  
+
+**Per-class performance:**
+
+| Class  | Precision | Recall | F1-Score | Support |
+|--------|-----------|--------|----------|---------|
+| mild   | 0.67      | 1.00   | 0.80     | 49      |
+| safe   | 1.00      | 0.47   | 0.63     | 43      |
+| severe | 0.80      | 1.00   | 0.89     | 4       |
+| toxic  | 1.00      | 0.89   | 0.94     | 19      |
+
+**Notes:**
+- Model occasionally hallucinates and repeats reasoning.  
+- Context window ~36k tokens is fully utilized during batch processing.  
+- Struggles with balanced recall for `safe` class due to LLM output variance.  
+- Fast execution: <1 minute for 115 comments.  
+- Hardware constraints: ~10GB RAM, CPU-only processing.  
+
 ---
-
-# TODO Phase 3 – LLM Comparative Evaluation
-
-**Date:** [YYYY-MM-DD → YYYY-MM-DD]  
-**Hardware:** ...
-**Models Evaluated:**
-- `llama-3.1-8b-instruct`  
+**TODO**
 - `mistral-7b-instruct-v0.3`  
 - `phi-4`  
 
@@ -190,67 +213,145 @@ This document records all training runs, their configurations, checkpoints, and 
 
 ### Experimental Setup
 - **Prompt format:**  
-  “Classify the following comment into one of: `safe`, `mild`, `toxic`, `severe`.”
-- **Evaluation dataset:** same test split used in Phase 1 & 2 (≈ 15 k comments).  
-- **Evaluation metrics:** Accuracy, Macro F1, Inference Latency (sec/comment), Context Length (tokens).  
-- **Batching:** [single-prompt / few-shot / chain-of-thought etc.]  
-- **Tools:** [LM Studio / Ollama / transformers + PEFT / custom prompt runner]  
+  You are a Comment Moderation AI. Classify a single forum comment. Return **JSON only**, no extra text.
+
+  Labels:  
+  - safe: no offensive content  
+  - mild: minor insults, slightly rude  
+  - toxic: strong insults, harassment  
+  - severe: extreme aggression or identity-based hate  
+
+  Rules:  
+  - One label per comment.  
+  - Consider literal impact of sarcasm or humor.  
+  - Profanity alone ≠ severe, use toxic.  
+
+  Output format:  
+  ```json
+  { "label": "<safe|mild|toxic|severe>", "reasoning": "<short explanation>" }
+  ```
 
 ---
 
 ### Run 1 – LLaMA 3.1 8B Instruct
 | Metric | Value |
 |---------|--------|
-| Accuracy |  |
-| Macro F1 |  |
-| Avg Latency (s/comment) |  |
-| Context Length (tokens) |  |
-| Prompt Mode | zero-shot / few-shot |
+| Accuracy | 0.78 |
+| Macro F1 | 0.82 |
+| Avg Latency (s/comment) | ~0.5 |
+| Context Length (tokens) | ~36k |
+| Prompt Mode | single-prompt, zero-shot |
 
 **Notes:**
-- Handles contextual sarcasm fairly well, but occasionally over-flags neutral comments.  
-- High token latency on CPU inference (~2 s per sample).  
+- Handles contextual sarcasm fairly well; occasional hallucinations or repeated outputs.  
+- Dataset: `forum_test_dataset.csv`, 115 comments split into 5 batches (~25 comments each).  
+- CPU inference only; RAM ~10GB, context window fully utilized.  
+- Full dataset processed in <1 minute.  
 
 ---
 
 ### Run 2 – Mistral 7B Instruct
 | Metric | Value |
 |---------|--------|
-| Accuracy |  |
-| Macro F1 |  |
-| Avg Latency (s/comment) |  |
-| Context Length (tokens) |  |
+| Accuracy | TBD |
+| Macro F1 | TBD |
+| Avg Latency (s/comment) | TBD |
+| Context Length (tokens) | TBD |
 
 **Notes:**
-- More concise outputs, fewer classification errors for borderline “mild” cases.  
+- More concise outputs expected.  
+- Likely fewer classification errors on borderline “mild” comments.  
 
 ---
 
 ### Run 3 – Phi-4 (LoRA Fine-tune [optional])
 | Metric | Value |
 |---------|--------|
-| Accuracy |  |
-| Macro F1 |  |
-| Runtime |  |
-| Params (trained) |  |
+| Accuracy | TBD |
+| Macro F1 | TBD |
+| Runtime | TBD |
+| Params (trained) | TBD |
 
 **Notes:**
 - Extremely efficient; competitive with 7B models on CPU.  
-- Few-shot prompting improves “mild/severe” discrimination.  
+- Few-shot prompting improves discrimination for mild/severe categories.  
 
 ---
 
-### Comparative Summary
+## Comparative Summaries
+
+### Classical vs BERT (full dataset)
+**Dataset:** Full training/test Jigsaw-toxic-comments dataset (~159k comments)  
+
 | Model | Accuracy | Macro F1 | Avg Latency (s/comment) | Params |
 |--------|-----------|-----------|--------------------------|---------|
 | TF-IDF + XGBoost | 0.8758 | 0.6393 | 0.001 | ~1.2 M |
 | DistilBERT (Fine-tuned) | 0.9546 | 0.6837 | 0.05 | ~66 M |
 | ToxicBERT | 0.955533 | 0.735944 | 0.05 | ~110 M |
-| LLaMA 3.1 8B Instruct |     |     |     |     |
-| Mistral 7B Instruct |     |     |     |     |
-| Phi-4 (LoRA) |     |     |     |     |
+
+**Notes:**
+- Classical model is fast but struggles on minority classes (`mild`/`toxic`).  
+- BERT models improve contextual understanding and recall for minority classes.  
+- Training a local LLM on the full 159k comment dataset is impractical and almost impossible on standard hardware due to memory and compute constraints so it is excluded from metric above.
 
 ---
+
+### All Models Comparison (forum_test_dataset.csv, 115 comments)
+**Dataset:** forum_test_dataset.csv, split into 5 batches (~25 comments each)  
+
+| Model | Accuracy | Macro F1 | Avg Latency (s/comment) | Params |
+|--------|-----------|-----------|--------------------------|---------|
+| TF-IDF + XGBoost | 0.7304 | 0.7053 | 0.001 | ~1.2 M |
+| DistilBERT (Fine-tuned) | 0.7100 | 0.6900 | 0.05 | ~66 M |
+| ToxicBERT | 0.7300 | 0.7500 | 0.05 | ~110 M |
+| LLaMA 3.1 8B Instruct | 0.78 | 0.82 | ~0.5 | 8B |
+
+
+**Per-class performance (TF-IDF + XGBoost):**
+
+| Class | Precision | Recall | F1-Score | Support |
+|-------|-----------|--------|----------|---------|
+| mild  | 0.6667    | 0.4444 | 0.5333   | 36      |
+| safe  | 0.7308    | 0.9828 | 0.8382   | 58      |
+| severe| 1.0000    | 0.7500 | 0.8571   | 4       |
+| toxic | 0.8000    | 0.4706 | 0.5926   | 17      |
+
+**Per-class performance (DistilBERT):**
+
+| Class | Precision | Recall | F1-Score | Support |
+|-------|-----------|--------|----------|---------|
+| mild  | 0.62      | 0.36   | 0.46     | 36      |
+| safe  | 0.71      | 1.00   | 0.83     | 58      |
+| severe| 1.00      | 0.75   | 0.86     | 4       |
+| toxic | 0.89      | 0.47   | 0.62     | 17      |
+
+**Per-class performance (ToxicBERT):**
+
+| Class | Precision | Recall | F1-Score | Support |
+|-------|-----------|--------|----------|---------|
+| mild  | 0.75      | 0.33   | 0.46     | 36      |
+| safe  | 0.68      | 1.00   | 0.81     | 58      |
+| severe| 1.00      | 1.00   | 1.00     | 4       |
+| toxic | 1.00      | 0.59   | 0.74     | 17      |
+
+**Per-class performance (LLaMA 3.1):**
+
+| Class | Precision | Recall | F1-Score | Support |
+|-------|-----------|--------|----------|---------|
+| mild  | 0.67      | 1.00   | 0.80     | 49      |
+| safe  | 1.00      | 0.47   | 0.63     | 43      |
+| severe| 0.80      | 1.00   | 0.89     | 4       |
+| toxic | 1.00      | 0.89   | 0.94     | 19      |
+
+**Notes:**
+- LLaMA 3.1 evaluated on a smaller testing dataset (forum_test_dataset.csv).  
+- Handles minority classes (`severe`/`toxic`) better than BERT for this dataset.  
+- CPU-only inference; ~10GB RAM, context window ~36k tokens.  
+- Full evaluation (~115 comments) completed in <1 minute.  
+- Occasional hallucination and repeated outputs; zero-shot single-prompt setup.  
+
+---
+
 
 ### Observations
 - LLMs exhibit better contextual judgment but less consistency across runs.  

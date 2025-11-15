@@ -180,12 +180,52 @@ This section describes the approaches and models used in the multi-phase toxicit
 
 > **Note:** Both models are compared in terms of accuracy, macro F1, per-class performance, and runtime to determine the best transformer for integration in the hybrid moderation system.
 
+### 4.3 Phase 3 – LLM Reasoning Layer
+### 4.3.1 Meta-llama-3.1-8b-instruct
 
-### 4.3 Phase 3 – LLM Reasoning Layer (Future Work)
-- **Models:** LLaMa3 and other open source LLMs.
-- **Approach:** Zero- or few-shot classification via prompt engineering  
-- **Integration:** Optional verification of uncertain or borderline predictions from Phases 1 and 2
-- **TODO:** Design confidence thresholds, prompts, and evaluation protocol for LLM verification
+- **Model:** 
+  - LLaMA 3.1 8B Instruct (`meta-llama-3.1-8b-instruct`)  
+  - Future LLMs: Mistral 7B Instruct, Phi-4 (LoRA fine-tune optional)  
+
+- **Prompt Design:**  
+    ```text
+      You are a Comment Moderation AI. Classify a single forum comment. Return JSON only, no extra text.
+
+      Labels:
+        safe: no offensive content
+        mild: minor insults, slightly rude
+        toxic: strong insults, harassment
+        severe: extreme aggression or identity-based hate
+
+      Rules:
+        - One label per comment
+        - Consider literal impact of sarcasm or humor
+        - Profanity alone ≠ severe, use toxic
+
+      Output format:
+        { "label": "<safe|mild|toxic|severe>", "reasoning": "<short explanation>" }
+
+      Input: "{comment}"
+      Output:
+    ```
+
+
+**Evaluation Dataset:** `forum_test_dataset.csv` (~115 comments split into 5 batches of ~25 each)  
+**Tools:** LM Studio  
+**Batching:** Sequential single-batch processing (~1 min per full dataset)  
+**Evaluation Metrics:** Accuracy, Macro F1, Per-class F1, Confusion matrix, Runtime per batch  
+**Hardware:** Mac M1 Max, ~10 GB RAM, CPU only  
+
+**Integration Strategy:** 
+- LLM verifies uncertain or borderline predictions from classical or transformer models.  
+- Useful for nuanced context, sarcasm, and indirect insults.  
+- Practical limits prevent training LLMs on the full 159k-comment dataset locally.
+
+
+**Notes:**
+- Handles contextual sarcasm well; occasional over-flagging of neutral comments.  
+- Runtime per batch ~10–12 seconds; full dataset ~1 min.  
+- Memory limitations restrict full-scale training; LLM best applied for small batches or verification tasks.
 
 ### 4.4 Evaluation Metrics
 - **Primary Metrics:** Accuracy, Macro F1-score  
@@ -281,6 +321,76 @@ This section presents a comparative evaluation between the baseline classical mo
 - Trade-offs include longer training and inference times, and higher computational requirements.  
 - Final per-class analysis will determine which transformer is better suited for integration into the hybrid moderation system.
 
+### 5.5 Phase 3 – LLM Evaluation (Forum Comments)
+
+This phase evaluates the performance of the local LLM (`meta-llama-3.1-8b-instruct`) on the `forum_test_dataset.csv` (~115 comments) split into 5 sequential batches (~25 comments each).
+
+#### Prompt
+
+LLM is instructed as a Comment Moderation AI, returning JSON only:
+```json
+{
+  "label": "<safe|mild|toxic|severe>",
+  "reasoning": "<short explanation>"
+}
+```
+
+#### Evaluation Metrics
+
+- Accuracy
+- Macro F1
+- Per-class F1
+- Confusion Matrix
+- Runtime per batch
+
+#### Hardware
+
+Mac M1 Max (~10 GB RAM, CPU only)
+
+---
+
+### LLaMA 3.1 8B Instruct Results
+
+| Class  | Precision | Recall | F1-Score | Support |
+|--------|-----------|--------|----------|---------|
+| mild   | 0.67      | 1.00   | 0.80     | 49      |
+| safe   | 1.00      | 0.47   | 0.63     | 43      |
+| severe | 0.80      | 1.00   | 0.89     | 4       |
+| toxic  | 1.00      | 0.89   | 0.94     | 19      |
+
+#### Overall Metrics
+
+| Metric                  | Value     |
+|-------------------------|-----------|
+| Accuracy                | 0.78      |
+| Macro F1                | 0.82      |
+| Runtime (full dataset)  | ~1 min    |
+
+---
+
+### Integration Insight
+
+- LLM serves as a reasoning layer to verify uncertain or borderline predictions from classical and transformer-based models.
+- Provides improved semantic judgment for subtle or context-dependent toxicity cases.
+
+### 5.6 Comparative Summary – Forum Test Dataset
+
+| Model                        | Accuracy | Macro F1 | Avg Latency (s/comment) | Params  |
+|------------------------------|----------|----------|-------------------------|---------|
+| Classical TF-IDF + XGBoost   | 0.7304   | 0.7053   | 0.001                   | ~1.2M   |
+| DistilBERT (Fine-tuned)      | 0.71     | 0.69     | 0.05                    | ~66M    |
+| ToxicBERT (Fine-tuned)       | 0.73     | 0.75     | 0.05                    | ~110M   |
+| LLaMA 3.1 8B Instruct        | 0.78     | 0.82     | 0.5                     | 8B      |
+
+---
+
+### Notes
+
+- **LLaMA 3.1** improves macro F1 and minority-class detection over both classical and transformer models on the forum dataset.
+- The **classical baseline** remains useful for ultra-low-latency filtering.
+- **Transformer models** retain high performance on structured training sets.
+- **LLM** is most valuable for contextual reasoning on small-scale datasets or uncertain cases due to memory limitations.
+
 ## 6. Discussion
 
 The experimental outcomes across all phases reveal a consistent pattern: as models increase in complexity and contextual understanding, their ability to capture nuanced forms of toxicity improves substantially, though at a cost in computational efficiency. This section outlines the main insights, common errors, computational trade-offs, and future directions for system enhancement.
@@ -289,23 +399,32 @@ The experimental outcomes across all phases reveal a consistent pattern: as mode
 
 The **TF-IDF + XGBoost baseline** delivered a respectable **accuracy of 0.8758** and **macro F1 of 0.6393**, performing well on the dominant `safe` class but struggling with minority categories such as `mild` and `severe`. Its simplicity and 3-minute training time make it an excellent lightweight filtering stage, but its lack of contextual understanding limits effectiveness for sarcasm, indirect toxicity, or coded insults.
 
-The **DistilBERT** model demonstrated substantial gains, achieving **0.9546 accuracy** and a **macro F1 of 0.6837**. The improvement in recall for minority classes reflects the strength of contextual embeddings in identifying subtle or implied toxicity. DistilBERT also showed better semantic robustness. For example, correctly identifying passive-aggressive or indirect harassment comments that the classical model misclassified as neutral.
+The **DistilBERT** model demonstrated substantial gains, achieving **0.9546 accuracy** and a **macro F1 of 0.6837**. The improvement in recall for minority classes reflects the strength of contextual embeddings in identifying subtle or implied toxicity. DistilBERT also showed better semantic robustness, e.g., correctly identifying passive-aggressive or indirect harassment comments that the classical model misclassified as neutral.
 
-The **ToxicBERT** model, fine-tuned specifically for toxic and offensive language, achieved the highest performance with **accuracy of 0.9555** and **macro F1 of 0.7359**, representing roughly a **+10% to +15% macro F1 improvement** over the baseline. Its class-weighted loss contributed to stronger recall on severe and highly toxic comments, confirming the benefit of domain-specific pretraining. However, this came with a **9.5-hour runtime** on CPU/MPS hardware and a significantly larger parameter footprint (~110M), which poses challenges for real-time deployment.
+The **ToxicBERT** model, fine-tuned specifically for toxic and offensive language, achieved the highest performance among transformers with **accuracy of 0.9555** and **macro F1 of 0.7359**, representing roughly a **+10% to +15% macro F1 improvement** over the baseline. Its class-weighted loss contributed to stronger recall on severe and highly toxic comments, confirming the benefit of domain-specific pretraining. However, this came with a **9.5-hour runtime** on CPU/MPS hardware and a significantly larger parameter footprint (~110M), which poses challenges for real-time deployment.
+
+The **LLaMA 3.1 8B Instruct (Phase 3)**, evaluated on the smaller `forum_test_dataset.csv` (~115 comments), achieved **accuracy of 0.78** and **macro F1 of 0.82**. The model demonstrated:
+- Excellent contextual reasoning for sarcasm, humor, and subtle toxicity.  
+- Strong per-class performance, particularly on `mild` and `toxic` comments, with fewer false negatives than classical and transformer models.  
+- Runtime per full dataset ~1 minute, with batch-level inference of ~10–12 seconds per ~25-comment batch.  
+- Practical limits on local hardware prevent training on the full 159k-comment dataset; best suited for verification or small-batch inference.
 
 In summary:
 - Transformers, particularly ToxicBERT, drastically outperform classical models in **minority-class recall and contextual detection**.
+- LLaMA 3.1 adds a **reasoning layer**, improving semantic judgment for subtle or ambiguous comments.
 - The **baseline** remains valuable for low-latency pre-filtering.
-- The **transformer tier** forms the semantic backbone of the moderation system, suitable for deeper inspection and nuanced classification.
+- The **transformer tier** forms the semantic backbone of the moderation system, while the **LLM tier** provides interpretive verification where needed.
 
 ### 6.2 Error Analysis
 
 Error analysis revealed several recurring misclassification patterns:
-- **False negatives** commonly occurred in borderline or sarcastic comments where toxicity was context-dependent (e.g., “you’re such a genius” used ironically).
-- **False positives** were occasionally triggered by emotionally charged but non-toxic language (e.g., political or passionate debate comments).
-- **Domain shift** was evident in comments with slang, memes, or context-specific abbreviations not well represented in the Jigsaw dataset.
+- **False negatives** commonly occurred in borderline or sarcastic comments where toxicity was context-dependent (e.g., “you’re such a genius” used ironically).  
+- **False positives** were occasionally triggered by emotionally charged but non-toxic language (e.g., political or passionate debate comments).  
+- **Domain shift** was evident in comments with slang, memes, or context-specific abbreviations not well represented in the Jigsaw dataset.  
 
-The **class-weighted training** improved minority-class detection but introduced mild over-sensitivity in borderline cases, especially for ToxicBERT. Addressing these through dataset augmentation (e.g., Reddit or Twitter data) is a clear next step to improve generalization.
+LLM evaluation highlighted:
+- Superior handling of indirect toxicity and sarcasm compared to classical and transformer models.
+- Occasional over-flagging of neutral comments, suggesting the need for confidence thresholds or hybrid verification with transformer models.
 
 ### 6.3 Computational Trade-offs
 
@@ -316,13 +435,15 @@ Each model presents a distinct balance between performance and operational feasi
 | TF-IDF + XGBoost | 0.8758 | 0.6393 | ~3 min | ~1.2M | Lightweight, interpretable |
 | DistilBERT | 0.9546 | 0.6837 | ~3 h | ~66M | Strong contextual performance |
 | ToxicBERT | 0.9555 | 0.7359 | ~9.5 h | ~110M | Domain-optimized, heavier compute |
+| LLaMA 3.1 8B | 0.78 | 0.82 | ~1 min (115 comments) | 8B | Excellent reasoning; batch-limited due to hardware |
 
-In production, **runtime and memory footprint** are critical. While XGBoost can process tens of thousands of comments per second, transformer inference (even when optimized) is significantly slower. The practical deployment strategy, therefore, involves **tiered inference**:
-- XGBoost for immediate filtering.
-- DistilBERT or ToxicBERT for secondary verification of uncertain cases.
-- Optional LLM layer for contextually ambiguous content.
-
-This design allows cost-efficient scalability while preserving semantic accuracy where it matters most.
+**Deployment Considerations:**
+- **Runtime and memory footprint** remain critical constraints.  
+- Tiered inference strategy:
+  1. XGBoost for high-throughput pre-filtering.  
+  2. DistilBERT / ToxicBERT for semantic verification.  
+  3. LLaMA for reasoning on ambiguous, subtle, or context-dependent content.  
+- Provides a **scalable, hybrid moderation pipeline** balancing speed and contextual accuracy.
 
 ### 6.4 Future Work / TODOs
 
@@ -355,16 +476,23 @@ This section will describe how the trained models will be incorporated into the 
 
 This research demonstrates a structured, multi-phase approach to toxicity detection that incrementally improves contextual understanding and classification performance through the integration of classical, transformer-based, and large language model architectures. The findings underscore the value of layering models to balance efficiency, interpretability, and semantic depth in real-world moderation systems.
 
-The **classical TF-IDF + XGBoost baseline** established a strong yet lightweight foundation, achieving a **macro F1 of 0.6393** and providing interpretable, low-latency predictions suitable for large-scale content filtering. Building on this, **DistilBERT** significantly improved minority-class detection and contextual sensitivity, achieving a **macro F1 of 0.6837**, while maintaining a manageable computational footprint. Finally, **ToxicBERT**, with its domain-specific pretraining, delivered the best overall performance (**macro F1 of 0.7359**), demonstrating its ability to detect nuanced, indirect, and severe forms of toxicity that eluded classical methods.
+The **classical TF-IDF + XGBoost baseline** established a strong yet lightweight foundation, achieving a **macro F1 of 0.6393** and providing interpretable, low-latency predictions suitable for large-scale content filtering. Building on this, **DistilBERT** significantly improved minority-class detection and contextual sensitivity, achieving a **macro F1 of 0.6837**, while maintaining a manageable computational footprint. **ToxicBERT**, with domain-specific pretraining, delivered the best overall performance (**macro F1 of 0.7359**), capturing subtle, indirect, and severe forms of toxicity that classical methods often missed.
+
+The **LLaMA 3.1 8B Instruct model (Phase 3)**, tested on a smaller forum evaluation set (`forum_test_dataset.csv`), further enhanced classification of nuanced and context-dependent comments, achieving a **macro F1 of 0.82**. While hardware limitations prevent full-scale training on the entire 159k-comment dataset, the LLM serves effectively as a reasoning layer for verification and disambiguation, particularly for sarcasm, humor, and borderline toxicity.
 
 The **multi-phase framework** proposed here:
 1. **Phase 1:** Fast classical filtering,  
 2. **Phase 2:** Contextual transformer analysis, and  
-3. **Phase 3:** Optional LLM reasoning
+3. **Phase 3:** Optional LLM reasoning  
 
-provides a scalable and adaptive foundation for modern content moderation pipelines. This hierarchical design ensures that high-volume moderation systems can maintain both **speed and contextual accuracy**, while selectively applying higher-compute models where ambiguity or subtlety is present.
+provides a scalable and adaptive foundation for modern content moderation pipelines. This hierarchical design ensures that high-volume moderation systems maintain both **speed and contextual accuracy**, while selectively applying higher-compute models where ambiguity or subtlety is present.
 
-From a deployment standpoint, the hybrid strategy offers a **production-feasible path** toward scalable moderation: lightweight models manage throughput, transformers handle context, and LLMs offer interpretive reasoning for the hardest edge cases. The results affirm that real-time, context-aware toxicity detection is achievable without fully sacrificing computational efficiency.
+From a deployment standpoint, the hybrid strategy offers a **production-feasible path** toward scalable moderation:  
+- Lightweight classical models manage throughput for bulk content,  
+- Transformers handle context-rich, minority-class detection, and  
+- LLMs offer interpretive reasoning for the most ambiguous or nuanced cases.  
+
+The results affirm that **real-time, context-aware toxicity detection** is achievable without fully sacrificing computational efficiency, providing a robust foundation for hybrid moderation systems that balance accuracy, speed, and semantic reasoning.
 
 ### Future Directions
 
