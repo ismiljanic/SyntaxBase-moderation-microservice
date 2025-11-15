@@ -1,0 +1,28 @@
+{
+    "model": "Local_LLM - meta-llama-3.1-8b-instruct",
+    "accuracy": 0.782608695652174,
+    "macro_f1": 0.8178831641946396,
+    "per_class_f1": {
+        "mild": 0.8032786885245902,
+        "safe": 0.6349206349206349,
+        "severe": 0.8888888888888888,
+        "toxic": 0.9444444444444444
+    },
+    "confusion_matrix": {
+        "safe": {
+            "safe": 20,
+            "mild": 23
+        },
+        "mild": {
+            "mild": 49
+        },
+        "toxic": {
+            "toxic": 17,
+            "severe": 1,
+            "mild": 1
+        },
+        "severe": {
+            "severe": 4
+        }
+    }
+}
