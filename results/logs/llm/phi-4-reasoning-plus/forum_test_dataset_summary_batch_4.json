@@ -1,0 +1,22 @@
+{
+    "model": "Local_LLM - phi-4-reasoning-plus",
+    "accuracy": 0.9655172413793104,
+    "macro_f1": 0.9487179487179488,
+    "per_class_f1": {
+        "mild": 0.9230769230769231,
+        "safe": 1.0,
+        "toxic": 0.9230769230769231
+    },
+    "confusion_matrix": {
+        "toxic": {
+            "toxic": 6,
+            "mild": 1
+        },
+        "safe": {
+            "safe": 16
+        },
+        "mild": {
+            "mild": 6
+        }
+    }
+}

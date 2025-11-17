@@ -6,8 +6,8 @@
 **Runtime:** ~1 minute  
 
 **Results:**
-- Accuracy: 0.78  
-- Macro F1: 0.82  
+- Accuracy: 0.7826 
+- Macro F1: 0.8179  
 - Weighted F1: 0.77  
 
 **Per-class performance:**
