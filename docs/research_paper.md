@@ -24,8 +24,8 @@ This project presents a **multi-phase toxicity detection system** designed to co
    - Capture contextual nuances and improve recall for minority classes.  
    - Evaluate trade-offs between accuracy, macro F1, and computational cost.
 
-3. **LLM Reasoning Layer (Phase 3, future work)**
-   - Use large language models (e.g. LLaMA3) for zero- or few-shot toxicity classification.  
+3. **LLM Reasoning Layer (Phase 3)**
+   - Use large language models (e.g. LLaMA3, qwen and/or phi) for zero- or few-shot toxicity classification.  
    - Handle subtle or ambiguous cases beyond transformer capabilities.
 
 The ultimate goal is a **hybrid moderation framework**: a pipeline where classical models provide quick filtering, transformers capture semantic subtleties, and LLMs verify uncertain or borderline cases. This approach aims to balance **performance, interpretability, and scalability**, creating a practical and publication-worthy system for real-world deployment.
@@ -44,7 +44,7 @@ Recently, **large language models (LLMs) and hybrid systems** have been explored
 Finally, **datasets** play a central role in model development. The Jigsaw Toxic Comments dataset is widely adopted for multi-class classification tasks (`safe`, `mild`, `toxic`, `severe`), while Davidson et al.’s Twitter hate speech dataset and various Reddit and Twitter crawls are frequently used to augment training data, particularly for minority classes.  
 
 **Summary:**  
-The evolution from classical ML to transformers and LLM-based systems highlights the trade-offs between speed, interpretability, and contextual understanding. Our multi-phase approach builds on these prior works by combining a lightweight baseline (TF-IDF + XGBoost), fine-tuned transformers (DistilBERT and ToxicBERT), and LLM reasoning for scalable, context-aware, and interpretable online toxicity moderation.
+The evolution from classical ML to transformers and LLM-based systems highlights the trade-offs between speed, interpretability, and contextual understanding. This multi-phase approach builds on these prior works by combining a lightweight baseline (TF-IDF + XGBoost), fine-tuned transformers (DistilBERT and ToxicBERT), and LLM reasoning for scalable, context-aware, and interpretable online toxicity moderation.
 
 
 ## 3. Dataset & Preprocessing
@@ -103,7 +103,7 @@ This preprocessing pipeline ensures consistency across **all three phases** of t
 
 ## 4. Methodology
 
-This section describes the approaches and models used in the multi-phase toxicity detection system, covering classical ML baselines, transformer-based models, and future LLM reasoning.
+This section describes the approaches and models used in the multi-phase toxicity detection system, covering classical ML baselines, transformer-based models, and LLM reasoning.
 
 ### 4.1 Phase 1 – Classical ML Baseline
 - **Model:** XGBoost classifier with TF-IDF + engineered numeric features
@@ -165,7 +165,7 @@ This section describes the approaches and models used in the multi-phase toxicit
 
 - **Training Approach:** resume from checkpoint if available; otherwise, start from pre-trained weights  
 
-- **Evaluation Metrics:** Accuracy, Macro F1 (per-class metrics computed separately if needed)  
+- **Evaluation Metrics:** Accuracy, Macro F1 (per-class metrics computed separately)  
 
 - **Purpose:** 
   - Capture contextual semantics and subtle toxicity  
@@ -213,18 +213,7 @@ This section describes the approaches and models used in the multi-phase toxicit
 **Tools:** LM Studio  
 **Batching:** Sequential single-batch processing (~1 min per full dataset)  
 **Evaluation Metrics:** Accuracy, Macro F1, Per-class F1, Confusion matrix, Runtime per batch  
-**Hardware:** Mac M1 Max, ~10 GB RAM, CPU only  
-
-**Integration Strategy:** 
-- LLM verifies uncertain or borderline predictions from classical or transformer models.  
-- Useful for nuanced context, sarcasm, and indirect insults.  
-- Practical limits prevent training LLMs on the full 159k-comment dataset locally.
-
-
-**Notes:**
-- Handles contextual sarcasm well; occasional over-flagging of neutral comments.  
-- Runtime per batch ~10–12 seconds; full dataset ~1 min.  
-- Memory limitations restrict full-scale training; LLM best applied for small batches or verification tasks.
+**Hardware:** Mac M1 Max, ~8-10 GB RAM, CPU only  
 
 ### 4.3.2 qwen3-4b-thinking-2507
 
@@ -257,9 +246,56 @@ This section describes the approaches and models used in the multi-phase toxicit
 **Tools:** LM Studio  
 **Batching:** Sequential single-batch processing (~1 min per full dataset)  
 **Evaluation Metrics:** Accuracy, Macro F1, Per-class F1, Confusion matrix, Runtime per batch  
-**Hardware:** Mac M1 Max, ~10 GB RAM, CPU only  
+**Hardware:** Mac M1 Max, ~6-8 GB RAM, CPU only  
+
+### 4.3.3 phi-4-reasoning-plus
+
+- **Model:** 
+  - phi-4-reasoning-plus (`phi-4-reasoning-plus`)
+
+- **Prompt Design:**  
+    ```text
+      You are a Comment Moderation AI. Classify a single forum comment.
+
+      Return **JSON only**. No extra text. No explanations outside JSON.
+
+      Labels:
+      - safe: no offensive content
+      - mild: minor insults or slightly rude
+      - toxic: strong insults, harassment
+      - severe: extreme aggression or identity-based hate
+
+      Rules:
+      - Exactly one label per comment.
+      - Consider sarcasm or humor literally.
+      - Profanity alone does NOT imply severe; use "toxic" unless hate-driven.
+      - Provide a brief reasoning in 1-2 sentences.
+
+      Output format:
+      { "label": "<safe|mild|toxic|severe>", "reasoning": "<short explanation>" }
+
+      Input: "{comment}"
+      Output:
+    ```
 
 
+**Evaluation Dataset:** `forum_test_dataset.csv` (~115 comments split into 5 batches of ~25 each)  
+**Tools:** LM Studio  
+**Batching:** Sequential single-batch processing (~1 min per full dataset)  
+**Evaluation Metrics:** Accuracy, Macro F1, Per-class F1, Confusion matrix, Runtime per batch  
+**Hardware:** Mac M1 Max, ~8-10 GB RAM, CPU only  
+
+---
+**Integration Strategy:** 
+- LLM verifies uncertain or borderline predictions from classical or transformer models.  
+- Useful for nuanced context, sarcasm, and indirect insults.  
+- Practical limits prevent training LLMs on the full 159k-comment dataset locally.
+
+
+**Notes:**
+- Handles contextual sarcasm well; occasional over-flagging of neutral comments.  
+- Runtime per batch ~10–12 seconds; full dataset ~1 min.  
+- Memory limitations restrict full-scale training; LLM best applied for small batches or verification tasks.
 ### 4.4 Evaluation Metrics
 - **Primary Metrics:** Accuracy, Macro F1-score  
 - **Per-class Metrics:** Precision, Recall, F1-score for each class (`safe`, `mild`, `toxic`, `severe`)  
@@ -400,16 +436,14 @@ Mac M1 Max (~10 GB RAM, CPU only)
 | severe | 1.00      | 1.00   | 1.00     | 3       |
 | toxic  | 1.00      | 0.79   | 0.88     | 14      |
 
-### Additional Local LLM Results (Placeholders)
+### phi-4-reasoning-plus Results
 
-> **Note:** Metrics for the remaining two LLMs should be added once evaluation is complete.
-
-| Model | Accuracy | Macro F1 | Runtime (full dataset) |
-|-------|----------|-----------|----------------------|
-| LLaMA 3.1 8B Instruct | 0.78 | 0.82 | ~1 min |
-| qwen3-4b-thinking-2507 | 0.96 | 0.95 | ~1 min |
-| LLM-1 | TBD | TBD | TBD |
-| LLM-2 | TBD | TBD | TBD |
+| Class  | Precision | Recall | F1-Score | Support |
+|--------|-----------|--------|----------|---------|
+| mild   | 0.97      | 0.97   | 0.97     | 32      |
+| safe   | 0.98      | 1.00   | 0.99     | 57      |
+| severe | 1.00      | 0.75   | 0.86     | 4       |
+| toxic  | 0.95      | 0.95   | 0.94     | 22      |
 
 #### Overall Metrics (All LLMs)
 
@@ -417,8 +451,7 @@ Mac M1 Max (~10 GB RAM, CPU only)
 |-------|----------|-----------|-------------|----------------------|
 | LLaMA 3.1 8B Instruct | 0.78 | 0.82 | 0.77 | ~1 min |
 | qwen3-4b-thinking-2507 | 0.96 | 0.95 | 0.96 | ~1 min |
-| LLM-1 | TBD | TBD | TBD | TBD |
-| LLM-2 | TBD | TBD | TBD | TBD |
+| phi-4-reasoning-plus | 0.9739 | 0.9429 | 0.96 | ~1 min |
 
 ### Integration Insight
 
@@ -433,7 +466,8 @@ Mac M1 Max (~10 GB RAM, CPU only)
 | DistilBERT (Fine-tuned)      | 0.71     | 0.69     | 0.05                    | ~66M    |
 | ToxicBERT (Fine-tuned)       | 0.73     | 0.75     | 0.05                    | ~110M   |
 | LLaMA 3.1 8B Instruct        | 0.78     | 0.82     | 0.5                     | 8B      |
-| qwen3-4b-thinking-2507        | 0.96     | 0.95     | 0.5                     | 4B      |
+| qwen3-4b-thinking-2507       | 0.96     | 0.95     | 0.5                     | 4B      |
+| phi-4-reasoning-plus         | 0.97     | 0.94     | 0.5                     | 8B      |
 
 ---
 
@@ -468,7 +502,7 @@ In summary:
 - The **baseline** remains valuable for low-latency pre-filtering.
 - The **transformer tier** forms the semantic backbone of the moderation system, while the **LLM tier** provides interpretive verification where needed.
 
-### 6.2 Error Analysis
+### 6.2 Error Analysis - TODO
 
 Error analysis revealed several recurring misclassification patterns:
 - **False negatives** commonly occurred in borderline or sarcastic comments where toxicity was context-dependent (e.g., “you’re such a genius” used ironically).  
@@ -489,7 +523,8 @@ Each model presents a distinct balance between performance and operational feasi
 | DistilBERT | 0.9546 | 0.6837 | ~3 h | ~66M | Strong contextual performance |
 | ToxicBERT | 0.9555 | 0.7359 | ~9.5 h | ~110M | Domain-optimized, heavier compute |
 | LLaMA 3.1 8B | 0.78 | 0.82 | ~1 min (115 comments) | 8B | Excellent reasoning; batch-limited due to hardware |
-| qwen3-4b-thinking-2507| 0.96 | 0.95 | ~1 min (115 comments) | 8B | Excellent reasoning; batch-limited due to hardware |
+| qwen3-4b-thinking-2507 | 0.96 | 0.95 | ~1 min (115 comments) | 4B | Top-tier reasoning; batch-limited due to hardware |
+| phi-4-reasoning-plus | 0.97 | 0.94 | ~1 min (115 comments) | 8B | Excellent reasoning; batch-limited due to hardware |
 
 **Deployment Considerations:**
 - **Runtime and memory footprint** remain critical constraints.  
@@ -498,18 +533,6 @@ Each model presents a distinct balance between performance and operational feasi
   2. DistilBERT / ToxicBERT for semantic verification.  
   3. LLM for reasoning on ambiguous, subtle, or context-dependent content.  
 - Provides a **scalable, hybrid moderation pipeline** balancing speed and contextual accuracy.
-
-### 6.4 Future Work / TODOs
-
-Several avenues remain open to extend the system’s capabilities:
-
-- **Dataset Expansion:** Fine-tune ToxicBERT with larger and more diverse datasets (e.g., Reddit, Twitter, or multilingual corpora) to improve generalization across domains.
-- **Multi-Modal Moderation:** Incorporate image and metadata signals alongside text to detect cross-modal toxicity.
-- **LLM Integration (Phase 3):** Evaluate prompt-based large language model classification (e.g., LLaMA 3, Mistral, Phi-4) as a reasoning layer for low-confidence predictions.
-- **Hybrid Thresholding:** Develop adaptive decision thresholds where DistilBERT handles primary classification and LLMs verify uncertain or borderline cases.
-- **Inference Optimization:** Explore quantization, ONNX conversion, or model distillation to reduce latency for real-time deployment.
-
----
 
 **Summary:**  
 Transformers, particularly ToxicBERT, mark a decisive leap forward in accuracy and contextual understanding compared to classical baselines, albeit with higher computational demands. The multi-phase architecture offers a pragmatic path forward: leveraging the speed of classical models, the semantic power of transformers, and the reasoning depth of LLMs to achieve a scalable, context-aware, and production-ready moderation pipeline.
@@ -532,7 +555,7 @@ This research demonstrates a structured, multi-phase approach to toxicity detect
 
 The **classical TF-IDF + XGBoost baseline** established a strong yet lightweight foundation, achieving a **macro F1 of 0.6393** and providing interpretable, low-latency predictions suitable for large-scale content filtering. Building on this, **DistilBERT** significantly improved minority-class detection and contextual sensitivity, achieving a **macro F1 of 0.6837**, while maintaining a manageable computational footprint. **ToxicBERT**, with domain-specific pretraining, delivered the best overall performance (**macro F1 of 0.7359**), capturing subtle, indirect, and severe forms of toxicity that classical methods often missed.
 
-The **LLaMA 3.1 8B Instruct model (Phase 3)**, tested on a smaller forum evaluation set (`forum_test_dataset.csv`), further enhanced classification of nuanced and context-dependent comments, achieving a **macro F1 of 0.82**. While hardware limitations prevent full-scale training on the entire 159k-comment dataset, the LLM serves effectively as a reasoning layer for verification and disambiguation, particularly for sarcasm, humor, and borderline toxicity.
+**Large language models (Phase 3)**, tested on a smaller forum evaluation set (`forum_test_dataset.csv`), further enhanced classification of nuanced and context-dependent comments, achieving a **macro F1 greater than 0.9**. While hardware limitations prevent full-scale training on the entire 159k-comment dataset, the LLM serves effectively as a reasoning layer for verification and disambiguation, particularly for sarcasm, humor, and borderline toxicity.
 
 The **multi-phase framework** proposed here:
 1. **Phase 1:** Fast classical filtering,  
@@ -553,7 +576,6 @@ The results affirm that **real-time, context-aware toxicity detection** is achie
 Future work will focus on several extensions to further refine system robustness and adaptability:
 
 - **Extended fine-tuning of ToxicBERT** on additional datasets (e.g., Reddit, Twitter) to improve generalization and handle slang, memes, and cultural context shifts.  
-- **LLM-based reasoning (Phase 3)** for zero- and few-shot classification, enabling dynamic interpretation of subtle toxicity and sarcasm.  
 - **Multi-modal analysis**, integrating text with visual or metadata cues for richer moderation.  
 - **Adaptive hybrid thresholds**, where low-confidence transformer outputs trigger LLM verification to ensure balanced precision-recall trade-offs.  
 - **Optimization for deployment**, leveraging quantization, model distillation, or ONNX runtimes to reduce inference latency.

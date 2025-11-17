@@ -185,8 +185,8 @@ This document records all training runs, their configurations, checkpoints, and 
 **Runtime:** ~1 minute  
 
 **Results:**
-- Accuracy: 0.78  
-- Macro F1: 0.82  
+- Accuracy: 0.7826  
+- Macro F1: 0.8179  
 - Weighted F1: 0.77  
 
 **Per-class performance:**
@@ -209,15 +209,15 @@ This document records all training runs, their configurations, checkpoints, and 
 
 ## Phase 3.2 – qwen3-4b-thinking-2507
 
-**Date:** 2025-11-15  
+**Date:** 2025-11-17
 **Hardware:** Mac M1 Max, 32GB RAM, CPU-only  
 **Dataset:** `forum_test_dataset.csv` (~115 comments across 5 batches)  
 **Description:** Prompt-based toxicity classification using qwen3-4b-thinking-2507  
 **Runtime:** ~1 minute total  
 
 ### Results
-- **Accuracy:** 0.96  
-- **Macro F1:** 0.95  
+- **Accuracy:** 0.9565  
+- **Macro F1:** 0.9512  
 - **Weighted F1:** 0.96  
 
 ### Per-class performance
@@ -237,12 +237,39 @@ This document records all training runs, their configurations, checkpoints, and 
 ### Notes
 - Fully utilizes qwen’s expanded 36k-token context window during multi-batch runs.  
 - CPU-only performance remains highly efficient: ~10–12 seconds per batch.  
-- Memory footprint stable around ~10GB throughout execution.
+- Memory footprint stable around ~6-8GB throughout execution.
 
----
-**TODO**
-- `mistral-7b-instruct-v0.3`  
-- `phi-4`  
+## Phase 3.3 – phi-4-reasoning-plus
+
+**Date:** 2025-11-17
+**Hardware:** Mac M1 Max, 32GB RAM, CPU-only  
+**Dataset:** `forum_test_dataset.csv` (~115 comments across 5 batches)  
+**Description:** Prompt-based toxicity classification using phi-4-reasoning-plus  
+**Runtime:** ~1 minute total  
+
+### Results
+- **Accuracy:** 0.9739  
+- **Macro F1:** 0.9429  
+- **Weighted F1:** 0.96  
+
+### Per-class performance
+
+| Class  | Precision | Recall | F1-Score | Support |
+|--------|-----------|--------|----------|---------|
+| mild   | 0.97      | 0.97   | 0.97     | 32      |
+| safe   | 0.98      | 1.00   | 0.99     | 57      |
+| severe | 1.00      | 0.75   | 0.86     | 4       |
+| toxic  | 0.95      | 0.95   | 0.94     | 22      |
+
+### Observations
+- Strong precision across all classes, with perfect scores for `severe` and `toxic`.  
+- Recall for the `toxic` class dips (0.75), indicating mild under-detection of toxicity.  
+- Excellent performance on the majority `safe` and `toxic` class with 0.98/1.00 and 0.95/0.95 precision/recall symmetry.  
+
+### Notes
+- Fully utilizes qwen’s expanded 36k-token context window during multi-batch runs.  
+- CPU-only performance remains highly efficient: ~10–12 seconds per batch.  
+- Memory footprint stable around ~8-10GB throughout execution.
 
 ---
 
@@ -273,6 +300,7 @@ This document records all training runs, their configurations, checkpoints, and 
 |---------|--------|
 | Accuracy | 0.78 |
 | Macro F1 | 0.82 |
+| Runtime | ~1min |
 | Avg Latency (s/comment) | ~0.5 |
 | Context Length (tokens) | ~36k |
 | Prompt Mode | single-prompt, zero-shot |
@@ -285,33 +313,28 @@ This document records all training runs, their configurations, checkpoints, and 
 
 ---
 
-### Run 2 – Mistral 7B Instruct
+### Run 2 - qwen3-4b-thinking-2507
 | Metric | Value |
 |---------|--------|
-| Accuracy | TBD |
-| Macro F1 | TBD |
-| Avg Latency (s/comment) | TBD |
-| Context Length (tokens) | TBD |
+| Accuracy | 0.9565 |
+| Macro F1 | 0.9512 |
+| Runtime | ~1min |
+| Avg Latency (s/comment) | ~0.5 |
+| Context Length (tokens) | ~36k |
+| Prompt Mode | single-prompt, zero-shot |
 
-**Notes:**
-- More concise outputs expected.  
-- Likely fewer classification errors on borderline “mild” comments.  
 
 ---
 
-### Run 3 – Phi-4 (LoRA Fine-tune [optional])
+### Run 3 – phi-4-reasoning-plus
 | Metric | Value |
 |---------|--------|
-| Accuracy | TBD |
-| Macro F1 | TBD |
-| Runtime | TBD |
-| Params (trained) | TBD |
-
-**Notes:**
-- Extremely efficient; competitive with 7B models on CPU.  
-- Few-shot prompting improves discrimination for mild/severe categories.  
-
----
+| Accuracy | 0.9739   |
+| Macro F1 | 0.9429   |
+| Runtime | ~1min |
+| Avg Latency (s/comment) | ~0.5 |
+| Context Length (tokens) | ~36k |
+| Prompt Mode | single-prompt, zero-shot |
 
 ## Comparative Summaries
 
@@ -340,6 +363,8 @@ This document records all training runs, their configurations, checkpoints, and 
 | DistilBERT (Fine-tuned) | 0.7100 | 0.6900 | 0.05 | ~66 M |
 | ToxicBERT | 0.7300 | 0.7500 | 0.05 | ~110 M |
 | LLaMA 3.1 8B Instruct | 0.78 | 0.82 | ~0.5 | 8B |
+| qwen3-4b-thinking-2507 | 0.9565 | 0.9512 | ~0.5 | 4B |
+| phi-4-reasoning-plus | 0.9739 | 0.9429 | ~0.5 | 8B |
 
 
 **Per-class performance (TF-IDF + XGBoost):**
@@ -378,10 +403,29 @@ This document records all training runs, their configurations, checkpoints, and 
 | severe| 0.80      | 1.00   | 0.89     | 4       |
 | toxic | 1.00      | 0.89   | 0.94     | 19      |
 
+**Per-class performance (qwen3):**
+
+| Class  | Precision | Recall | F1-Score | Support |
+|--------|-----------|--------|----------|---------|
+| mild   | 0.91      | 0.98   | 0.94     | 42      |
+| safe   | 0.98      | 0.98   | 0.98     | 56      |
+| severe | 1.00      | 1.00   | 1.00     | 3       |
+| toxic  | 1.00      | 0.79   | 0.88     | 14      |
+
+**Per-class performance (phi4):**
+
+| Class  | Precision | Recall | F1-Score | Support |
+|--------|-----------|--------|----------|---------|
+| mild   | 0.97      | 0.97   | 0.97     | 32      |
+| safe   | 0.98      | 1.00   | 0.99     | 57      |
+| severe | 1.00      | 0.75   | 0.86     | 4       |
+| toxic  | 0.95      | 0.95   | 0.94     | 22      |
+
+
 **Notes:**
-- LLaMA 3.1 evaluated on a smaller testing dataset (forum_test_dataset.csv).  
+- LLM models evaluated on a smaller testing dataset (forum_test_dataset.csv).  
 - Handles minority classes (`severe`/`toxic`) better than BERT for this dataset.  
-- CPU-only inference; ~10GB RAM, context window ~36k tokens.  
+- CPU-only inference; ~6-10GB RAM, context window ~36k tokens.  
 - Full evaluation (~115 comments) completed in <1 minute.  
 - Occasional hallucination and repeated outputs; zero-shot single-prompt setup.  
 

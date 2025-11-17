@@ -92,7 +92,7 @@ sequenceDiagram
         LLM-->>Microservice: Verified Label
     end
     Microservice-->>Forum: Return Final Label
-    Forum-->>User: Display Moderation Result
+    Forum-->>User(admin): Display Moderation Result
 
 ```
 ---

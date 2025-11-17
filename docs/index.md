@@ -10,8 +10,8 @@ This project implements and compares classical, transformer-based, and LLM-based
 
 - [Architecture](architecture.md) – High-level system design, model pipeline, and microservice integration.
 - [Training Logs](training_logs.md) – Chronological records of all training runs, checkpoints, and metrics.
-- [Research Paper](docs.md) – Full research-style write-up, including dataset, methodology, experiments, and results.
-- [Notebooks](../notebooks/) – Jupyter notebooks for baseline experiments, transformer evaluation, and error analysis.
+- [Research Paper](docs.md) – Full research-style write-up, including dataset, methodology, experiments, results and more.
+- [Notebooks](../notebooks/) – Jupyter notebooks for baseline experiments, transformer evaluation, model comparison, error and metrics analysis.
 - [Results](../results/) – Saved metrics, model comparisons, logs and visual evaluation artifacts
 - [Models](../models/saved/) – Stored classical and transformer model checkpoints, tokenizers, and label mappings.
 
