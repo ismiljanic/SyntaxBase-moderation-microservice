@@ -176,10 +176,11 @@ This document records all training runs, their configurations, checkpoints, and 
 - Best model: `checkpoint-48000`
 
 
-## Phase 3 – LLM reasoning with meta-llama-3.1-8b-instruct  
+## Phase 3 – LLM reasoning
+### Phase 3.1 - meta-llama-3.1-8b-instruct  
 **Date:** 2025-11-15  
 **Hardware:** Mac M1 Max, 32GB RAM, CPU only  
-**Dataset:** Combined forum comment batches (~115 comments)  
+**Dataset:** `forum_test_dataset.csv` (~115 comments across 5 batches)  
 **Description:** Prompt-based classification with meta-llama-3.1-8b-instruct  
 **Runtime:** ~1 minute  
 
@@ -203,6 +204,40 @@ This document records all training runs, their configurations, checkpoints, and 
 - Struggles with balanced recall for `safe` class due to LLM output variance.  
 - Fast execution: <1 minute for 115 comments.  
 - Hardware constraints: ~10GB RAM, CPU-only processing.  
+
+---
+
+## Phase 3.2 – qwen3-4b-thinking-2507
+
+**Date:** 2025-11-15  
+**Hardware:** Mac M1 Max, 32GB RAM, CPU-only  
+**Dataset:** `forum_test_dataset.csv` (~115 comments across 5 batches)  
+**Description:** Prompt-based toxicity classification using qwen3-4b-thinking-2507  
+**Runtime:** ~1 minute total  
+
+### Results
+- **Accuracy:** 0.96  
+- **Macro F1:** 0.95  
+- **Weighted F1:** 0.96  
+
+### Per-class performance
+
+| Class  | Precision | Recall | F1-Score | Support |
+|--------|-----------|--------|----------|---------|
+| mild   | 0.91      | 0.98   | 0.94     | 42      |
+| safe   | 0.98      | 0.98   | 0.98     | 56      |
+| severe | 1.00      | 1.00   | 1.00     | 3       |
+| toxic  | 1.00      | 0.79   | 0.88     | 14      |
+
+### Observations
+- Strong precision across all classes, with perfect scores for `severe` and `toxic`.  
+- Recall for the `toxic` class dips (0.79), indicating mild under-detection of toxicity.  
+- Excellent performance on the majority `safe` class with 0.98 precision/recall symmetry.  
+
+### Notes
+- Fully utilizes qwen’s expanded 36k-token context window during multi-batch runs.  
+- CPU-only performance remains highly efficient: ~10–12 seconds per batch.  
+- Memory footprint stable around ~10GB throughout execution.
 
 ---
 **TODO**

@@ -18,7 +18,7 @@ The system consists of three main layers:
    - Semantic and contextual understanding
    - Handles nuanced toxicity missed by classical models
 
-3. **LLM Layer (Optional / Phase 3)**
+3. **LLM Layer (Phase 3)**
    - Zero-shot or few-shot classification
    - Context-aware moderation and edge cases
    - Acts as a verification layer for uncertain predictions

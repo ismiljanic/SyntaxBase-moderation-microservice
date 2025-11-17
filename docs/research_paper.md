@@ -185,7 +185,6 @@ This section describes the approaches and models used in the multi-phase toxicit
 
 - **Model:** 
   - LLaMA 3.1 8B Instruct (`meta-llama-3.1-8b-instruct`)  
-  - Future LLMs: Mistral 7B Instruct, Phi-4 (LoRA fine-tune optional)  
 
 - **Prompt Design:**  
     ```text
@@ -226,6 +225,40 @@ This section describes the approaches and models used in the multi-phase toxicit
 - Handles contextual sarcasm well; occasional over-flagging of neutral comments.  
 - Runtime per batch ~10–12 seconds; full dataset ~1 min.  
 - Memory limitations restrict full-scale training; LLM best applied for small batches or verification tasks.
+
+### 4.3.2 qwen3-4b-thinking-2507
+
+- **Model:** 
+  - qwen3-4b-thinking-2507 (`qwen/qwen3-4b-thinking-2507`)
+
+- **Prompt Design:**  
+    ```text
+      You are a Comment Moderation AI. Classify a single forum comment.
+
+      Return **JSON only**. No extra text. No explanations outside JSON.
+
+      Labels:
+      - safe: no offensive content
+      - mild: minor insults or slightly rude
+      - toxic: strong insults, harassment
+      - severe: extreme aggression or identity-based hate
+
+      Rules:
+      - Exactly one label per comment.
+      - Sarcasm must be taken literally.
+      - Profanity alone does NOT imply severe; use toxic unless hate-driven.
+
+      Output:
+      {"label": "<safe|mild|toxic|severe>", "reasoning": "<short explanation>"}
+    ```
+
+
+**Evaluation Dataset:** `forum_test_dataset.csv` (~115 comments split into 5 batches of ~25 each)  
+**Tools:** LM Studio  
+**Batching:** Sequential single-batch processing (~1 min per full dataset)  
+**Evaluation Metrics:** Accuracy, Macro F1, Per-class F1, Confusion matrix, Runtime per batch  
+**Hardware:** Mac M1 Max, ~10 GB RAM, CPU only  
+
 
 ### 4.4 Evaluation Metrics
 - **Primary Metrics:** Accuracy, Macro F1-score  
@@ -358,15 +391,34 @@ Mac M1 Max (~10 GB RAM, CPU only)
 | severe | 0.80      | 1.00   | 0.89     | 4       |
 | toxic  | 1.00      | 0.89   | 0.94     | 19      |
 
-#### Overall Metrics
+### qwen3-4b-thinking-2507 Results
 
-| Metric                  | Value     |
-|-------------------------|-----------|
-| Accuracy                | 0.78      |
-| Macro F1                | 0.82      |
-| Runtime (full dataset)  | ~1 min    |
+| Class  | Precision | Recall | F1-Score | Support |
+|--------|-----------|--------|----------|---------|
+| mild   | 0.91      | 0.98   | 0.94     | 42      |
+| safe   | 0.98      | 0.98   | 0.98     | 56      |
+| severe | 1.00      | 1.00   | 1.00     | 3       |
+| toxic  | 1.00      | 0.79   | 0.88     | 14      |
 
----
+### Additional Local LLM Results (Placeholders)
+
+> **Note:** Metrics for the remaining two LLMs should be added once evaluation is complete.
+
+| Model | Accuracy | Macro F1 | Runtime (full dataset) |
+|-------|----------|-----------|----------------------|
+| LLaMA 3.1 8B Instruct | 0.78 | 0.82 | ~1 min |
+| qwen3-4b-thinking-2507 | 0.96 | 0.95 | ~1 min |
+| LLM-1 | TBD | TBD | TBD |
+| LLM-2 | TBD | TBD | TBD |
+
+#### Overall Metrics (All LLMs)
+
+| Model | Accuracy | Macro F1 | Weighted F1 | Runtime (full dataset) |
+|-------|----------|-----------|-------------|----------------------|
+| LLaMA 3.1 8B Instruct | 0.78 | 0.82 | 0.77 | ~1 min |
+| qwen3-4b-thinking-2507 | 0.96 | 0.95 | 0.96 | ~1 min |
+| LLM-1 | TBD | TBD | TBD | TBD |
+| LLM-2 | TBD | TBD | TBD | TBD |
 
 ### Integration Insight
 
@@ -381,12 +433,13 @@ Mac M1 Max (~10 GB RAM, CPU only)
 | DistilBERT (Fine-tuned)      | 0.71     | 0.69     | 0.05                    | ~66M    |
 | ToxicBERT (Fine-tuned)       | 0.73     | 0.75     | 0.05                    | ~110M   |
 | LLaMA 3.1 8B Instruct        | 0.78     | 0.82     | 0.5                     | 8B      |
+| qwen3-4b-thinking-2507        | 0.96     | 0.95     | 0.5                     | 4B      |
 
 ---
 
 ### Notes
 
-- **LLaMA 3.1** improves macro F1 and minority-class detection over both classical and transformer models on the forum dataset.
+- **Large language models** improves macro F1 and minority-class detection over both classical and transformer models on the forum dataset.
 - The **classical baseline** remains useful for ultra-low-latency filtering.
 - **Transformer models** retain high performance on structured training sets.
 - **LLM** is most valuable for contextual reasoning on small-scale datasets or uncertain cases due to memory limitations.
@@ -403,7 +456,7 @@ The **DistilBERT** model demonstrated substantial gains, achieving **0.9546 accu
 
 The **ToxicBERT** model, fine-tuned specifically for toxic and offensive language, achieved the highest performance among transformers with **accuracy of 0.9555** and **macro F1 of 0.7359**, representing roughly a **+10% to +15% macro F1 improvement** over the baseline. Its class-weighted loss contributed to stronger recall on severe and highly toxic comments, confirming the benefit of domain-specific pretraining. However, this came with a **9.5-hour runtime** on CPU/MPS hardware and a significantly larger parameter footprint (~110M), which poses challenges for real-time deployment.
 
-The **LLaMA 3.1 8B Instruct (Phase 3)**, evaluated on the smaller `forum_test_dataset.csv` (~115 comments), achieved **accuracy of 0.78** and **macro F1 of 0.82**. The model demonstrated:
+The **(Phase 3) large language models**, evaluated on the smaller `forum_test_dataset.csv` (~115 comments), significantly higher accuracy and f1 metrics. The models demonstrated:
 - Excellent contextual reasoning for sarcasm, humor, and subtle toxicity.  
 - Strong per-class performance, particularly on `mild` and `toxic` comments, with fewer false negatives than classical and transformer models.  
 - Runtime per full dataset ~1 minute, with batch-level inference of ~10–12 seconds per ~25-comment batch.  
@@ -411,7 +464,7 @@ The **LLaMA 3.1 8B Instruct (Phase 3)**, evaluated on the smaller `forum_test_da
 
 In summary:
 - Transformers, particularly ToxicBERT, drastically outperform classical models in **minority-class recall and contextual detection**.
-- LLaMA 3.1 adds a **reasoning layer**, improving semantic judgment for subtle or ambiguous comments.
+- LLM adds a **reasoning layer**, improving semantic judgment for subtle or ambiguous comments.
 - The **baseline** remains valuable for low-latency pre-filtering.
 - The **transformer tier** forms the semantic backbone of the moderation system, while the **LLM tier** provides interpretive verification where needed.
 
@@ -436,13 +489,14 @@ Each model presents a distinct balance between performance and operational feasi
 | DistilBERT | 0.9546 | 0.6837 | ~3 h | ~66M | Strong contextual performance |
 | ToxicBERT | 0.9555 | 0.7359 | ~9.5 h | ~110M | Domain-optimized, heavier compute |
 | LLaMA 3.1 8B | 0.78 | 0.82 | ~1 min (115 comments) | 8B | Excellent reasoning; batch-limited due to hardware |
+| qwen3-4b-thinking-2507| 0.96 | 0.95 | ~1 min (115 comments) | 8B | Excellent reasoning; batch-limited due to hardware |
 
 **Deployment Considerations:**
 - **Runtime and memory footprint** remain critical constraints.  
 - Tiered inference strategy:
   1. XGBoost for high-throughput pre-filtering.  
   2. DistilBERT / ToxicBERT for semantic verification.  
-  3. LLaMA for reasoning on ambiguous, subtle, or context-dependent content.  
+  3. LLM for reasoning on ambiguous, subtle, or context-dependent content.  
 - Provides a **scalable, hybrid moderation pipeline** balancing speed and contextual accuracy.
 
 ### 6.4 Future Work / TODOs
