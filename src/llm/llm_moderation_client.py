@@ -12,8 +12,8 @@ class LLMModerationClient:
     def __init__(
         self,
         base_url: str = "http://localhost:1234/v1/chat/completions",
-        model_name: str = "meta-llama-3.1-8b-instruct",
-        prompt_path: str = "prompts/llama3.1-8b.prompt.txt"
+        model_name: str = "qwen3-4b-thinking-2507",
+        prompt_path: str = "prompts/qwen3-4b-thinking-2507.prompt.txt"
     ):
         self.base_url = base_url
         self.model_name = model_name
@@ -71,6 +71,6 @@ class LLMModerationClient:
 
 if __name__ == "__main__":
     client = LLMModerationClient()
-    test_comment = "How do I center a div in CSS?"
+    test_comment = "I will beat you when I see you!"
     output = client.classify_comment(test_comment)
     print(json.dumps(output, indent=2))
