@@ -1,0 +1,11 @@
+=== Local_LLM (qwen3-4b-thinking-2507) ===
+              precision    recall  f1-score   support
+
+        mild       0.91      0.98      0.94        42
+        safe       0.98      0.98      0.98        56
+      severe       1.00      1.00      1.00         3
+       toxic       1.00      0.79      0.88        14
+
+    accuracy                           0.96       115
+   macro avg       0.97      0.94      0.95       115
+weighted avg       0.96      0.96      0.96       115

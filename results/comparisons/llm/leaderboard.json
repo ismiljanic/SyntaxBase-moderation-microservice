@@ -1,0 +1,58 @@
+[
+    {
+        "model": "qwen3-4b-thinking-2507",
+        "accuracy": 0.9565217391304348,
+        "macro_f1": 0.9511678981937602,
+        "per_class_f1": {
+            "mild": 0.9425287356321839,
+            "safe": 0.9821428571428571,
+            "severe": 1.0,
+            "toxic": 0.88
+        },
+        "confusion_matrix": {
+            "safe": {
+                "safe": 55,
+                "mild": 1
+            },
+            "mild": {
+                "mild": 41,
+                "safe": 1
+            },
+            "severe": {
+                "severe": 3
+            },
+            "toxic": {
+                "toxic": 11,
+                "mild": 3
+            }
+        }
+    },
+    {
+        "model": "meta-llama-3.1-8b-instruct",
+        "accuracy": 0.782608695652174,
+        "macro_f1": 0.8178831641946396,
+        "per_class_f1": {
+            "mild": 0.8032786885245902,
+            "safe": 0.6349206349206349,
+            "severe": 0.8888888888888888,
+            "toxic": 0.9444444444444444
+        },
+        "confusion_matrix": {
+            "safe": {
+                "safe": 20,
+                "mild": 23
+            },
+            "mild": {
+                "mild": 49
+            },
+            "toxic": {
+                "toxic": 17,
+                "severe": 1,
+                "mild": 1
+            },
+            "severe": {
+                "severe": 4
+            }
+        }
+    }
+]
