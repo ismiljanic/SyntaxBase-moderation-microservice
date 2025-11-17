@@ -1,5 +1,5 @@
 {
-    "model": "Local_LLM - qwen3-4b-thinking-2507",
+    "model": "qwen3-4b-thinking-2507",
     "accuracy": 0.9565217391304348,
     "macro_f1": 0.9511678981937602,
     "per_class_f1": {

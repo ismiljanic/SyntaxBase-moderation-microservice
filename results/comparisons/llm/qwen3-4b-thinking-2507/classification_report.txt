@@ -1,4 +1,5 @@
-=== Local_LLM (qwen3-4b-thinking-2507) ===
+=== qwen3-4b-thinking-2507 ===
+
               precision    recall  f1-score   support
 
         mild       0.91      0.98      0.94        42

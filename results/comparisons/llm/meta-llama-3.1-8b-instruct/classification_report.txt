@@ -1,4 +1,5 @@
-=== Local_LLM (meta-llama-3.1-8b-instruct) ===
+=== meta-llama-3.1-8b-instruct ===
+
               precision    recall  f1-score   support
 
         mild       0.67      1.00      0.80        49

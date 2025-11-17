@@ -1,0 +1,28 @@
+{
+    "model": "phi-4-reasoning-plus",
+    "accuracy": 0.9739130434782609,
+    "macro_f1": 0.9429356648785997,
+    "per_class_f1": {
+        "mild": 0.96875,
+        "safe": 0.991304347826087,
+        "severe": 0.8571428571428571,
+        "toxic": 0.9545454545454546
+    },
+    "confusion_matrix": {
+        "safe": {
+            "safe": 57
+        },
+        "mild": {
+            "mild": 31,
+            "safe": 1
+        },
+        "toxic": {
+            "toxic": 21,
+            "mild": 1
+        },
+        "severe": {
+            "severe": 3,
+            "toxic": 1
+        }
+    }
+}
