@@ -1,0 +1,27 @@
+{
+    "model": "Local_LLM - qwen3-4b-thinking-2507",
+    "accuracy": 0.875,
+    "macro_f1": 0.8246567505720823,
+    "per_class_f1": {
+        "mild": 0.8421052631578947,
+        "safe": 0.9565217391304348,
+        "severe": 1.0,
+        "toxic": 0.5
+    },
+    "confusion_matrix": {
+        "mild": {
+            "mild": 8,
+            "safe": 1
+        },
+        "safe": {
+            "safe": 11
+        },
+        "severe": {
+            "severe": 1
+        },
+        "toxic": {
+            "toxic": 1,
+            "mild": 2
+        }
+    }
+}
