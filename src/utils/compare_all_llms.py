@@ -103,7 +103,7 @@ def evaluate_model(model_name, summaries):
     plt.ylabel("True")
     plt.title(f"Confusion Matrix - {model_name}")
     plt.tight_layout()
-    plt.savefig(out_dir / "confusion_matrix.png")
+    # plt.savefig(out_dir / "confusion_matrix.png")
     plt.close()
 
     return summary

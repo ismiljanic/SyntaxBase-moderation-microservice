@@ -32,8 +32,9 @@ def load_llm_batch_summaries(model_name: str):
 # MAIN AGGREGATION LOGIC
 # --------------------------
 
-MODEL_NAME = "meta-llama-3.1-8b-instruct"
+# MODEL_NAME = "meta-llama-3.1-8b-instruct"
 # MODEL_NAME = "qwen3-4b-thinking-2507"
+MODEL_NAME = "phi-4-reasoning-plus"
 
 batches = load_llm_batch_summaries(MODEL_NAME)
 
