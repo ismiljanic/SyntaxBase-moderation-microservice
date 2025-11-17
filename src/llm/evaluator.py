@@ -7,24 +7,24 @@ from llm_moderation_client import LLMModerationClient
 from sklearn.metrics import precision_recall_fscore_support, accuracy_score
 
 # INPUT = Path("data/test/llm/forum_test_dataset_for_llm_batch_1.csv")
-# OUTPUT = Path("results/logs/llm/qwen3-4b-thinking-2507/forum_test_dataset_results_batch_1.csv")
-# SUMMARY_OUTPUT = Path("results/logs/llm/qwen3-4b-thinking-2507/forum_test_dataset_summary_batch_1.json")
+# OUTPUT = Path("results/logs/llm/phi-4-reasoning-plus/forum_test_dataset_results_batch_1.csv")
+# SUMMARY_OUTPUT = Path("results/logs/llm/phi-4-reasoning-plus/forum_test_dataset_summary_batch_1.json")
 
 # INPUT = Path("data/test/llm/forum_test_dataset_for_llm_batch_2.csv")
-# OUTPUT = Path("results/logs/llm/qwen3-4b-thinking-2507/forum_test_dataset_results_batch_2.csv")
-# SUMMARY_OUTPUT = Path("results/logs/llm/qwen3-4b-thinking-2507/forum_test_dataset_summary_batch_2.json")
+# OUTPUT = Path("results/logs/llm/phi-4-reasoning-plus/forum_test_dataset_results_batch_2.csv")
+# SUMMARY_OUTPUT = Path("results/logs/llm/phi-4-reasoning-plus/forum_test_dataset_summary_batch_2.json")
 
 # INPUT = Path("data/test/llm/forum_test_dataset_for_llm_batch_3.csv")
-# OUTPUT = Path("results/logs/llm/qwen3-4b-thinking-2507/forum_test_dataset_results_batch_3.csv")
-# SUMMARY_OUTPUT = Path("results/logs/llm/qwen3-4b-thinking-2507/forum_test_dataset_summary_batch_3.json")
+# OUTPUT = Path("results/logs/llm/phi-4-reasoning-plus/forum_test_dataset_results_batch_3.csv")
+# SUMMARY_OUTPUT = Path("results/logs/llm/phi-4-reasoning-plus/forum_test_dataset_summary_batch_3.json")
 
 # INPUT = Path("data/test/llm/forum_test_dataset_for_llm_batch_4.csv")
-# OUTPUT = Path("results/logs/llm/qwen3-4b-thinking-2507/forum_test_dataset_results_batch_4.csv")
-# SUMMARY_OUTPUT = Path("results/logs/llm/qwen3-4b-thinking-2507/forum_test_dataset_summary_batch_4.json")
+# OUTPUT = Path("results/logs/llm/phi-4-reasoning-plus/forum_test_dataset_results_batch_4.csv")
+# SUMMARY_OUTPUT = Path("results/logs/llm/phi-4-reasoning-plus/forum_test_dataset_summary_batch_4.json")
 
 INPUT = Path("data/test/llm/forum_test_dataset_for_llm_batch_5.csv")
-OUTPUT = Path("results/logs/llm/qwen3-4b-thinking-2507/forum_test_dataset_results_batch_5.csv")
-SUMMARY_OUTPUT = Path("results/logs/llm/qwen3-4b-thinking-2507/forum_test_dataset_summary_batch_5.json")
+OUTPUT = Path("results/logs/llm/phi-4-reasoning-plus/forum_test_dataset_results_batch_5.csv")
+SUMMARY_OUTPUT = Path("results/logs/llm/phi-4-reasoning-plus/forum_test_dataset_summary_batch_5.json")
 
 def run_evaluation():
     client = LLMModerationClient()
@@ -84,7 +84,7 @@ def run_evaluation():
         confusion[t][p] += 1
 
     summary = {
-        "model": "Local_LLM - qwen3-4b-thinking-2507",
+        "model": "Local_LLM - phi-4-reasoning-plus",
         "accuracy": accuracy,
         "macro_f1": macro_f1,
         "per_class_f1": per_class_f1,
