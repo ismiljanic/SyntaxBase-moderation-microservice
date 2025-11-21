@@ -4,6 +4,25 @@ import requests
 from typing import Dict, Any
 from pathlib import Path
 
+# local
+# class LLMModerationClient:
+#     """
+#     Thin client for querying a local LLM running via LM Studio (OpenAI-compatible API).
+#     """
+
+#     def __init__(
+#         self,
+#         base_url: str = "http://localhost:1234/v1/chat/completions",
+#         model_name: str = "qwen3-4b-thinking-plus",
+#         prompt_path: str = "prompts/qwen3-4b-thinking-plus.txt"
+#     ):
+#         self.base_url = base_url
+#         self.model_name = model_name
+
+#         prompt_file = Path(__file__).parent / prompt_path
+#         self.system_prompt = prompt_file.read_text(encoding="utf-8").strip()
+
+# docker
 class LLMModerationClient:
     """
     Thin client for querying a local LLM running via LM Studio (OpenAI-compatible API).
@@ -11,9 +30,9 @@ class LLMModerationClient:
 
     def __init__(
         self,
-        base_url: str = "http://localhost:1234/v1/chat/completions",
-        model_name: str = "phi-4-reasoning-plus",
-        prompt_path: str = "prompts/phi-4-reasoning-plus.prompt.txt"
+        base_url: str = "http://host.docker.internal:1234/v1/chat/completions",
+        model_name: str = "qwen3-4b-thinking-plus",
+        prompt_path: str = "prompts/qwen3-4b-thinking-plus.txt"
     ):
         self.base_url = base_url
         self.model_name = model_name

@@ -1,0 +1,65 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: docker/api/Dockerfile
+    container_name: moderation_api
+    ports:
+      - "8000:8000"
+    depends_on:
+      - classical
+      - bert
+      - toxicbert
+      - llm
+
+  classical:
+    build:
+      context: .
+      dockerfile: docker/classical/Dockerfile
+    container_name: classical_service
+    ports:
+      - "7001:7001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7001/predict"]
+      interval: 10s
+      retries: 3
+      timeout: 5s
+
+  bert:
+    build:
+      context: .
+      dockerfile: docker/bert/Dockerfile
+    container_name: bert_service
+    ports:
+      - "7002:7002"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7002/predict"]
+      interval: 10s
+      retries: 3
+      timeout: 5s
+
+  toxicbert:
+    build:
+      context: .
+      dockerfile: docker/toxic_bert/Dockerfile
+    container_name: toxicbert_service
+    ports:
+      - "7003:7003"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7003/predict"]
+      interval: 10s
+      retries: 3
+      timeout: 5s
+
+  llm:
+    build:
+      context: .
+      dockerfile: docker/llm/Dockerfile
+    container_name: llm_service
+    ports:
+      - "7004:7004"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7004/predict"]
+      interval: 10s
+      retries: 3
+      timeout: 5s
