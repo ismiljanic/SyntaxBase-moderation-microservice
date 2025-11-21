@@ -12,8 +12,8 @@ It includes:
 ## Documentation Overview
 
 - [Architecture](architecture.md) – High-level system design, model pipeline, and microservice integration.
-- [Research Paper](docs.md) – Full research-style write-up, including dataset, methodology, experiments, results and more.
-- [Training Logs](training_logs.md) – Chronological records of all training runs, checkpoints, and metrics.
+- [Research Paper](research_paper.md) – Full research-style write-up, including dataset, methodology, experiments, results and more.
+- [Training Logs](training_log.md) – Chronological records of all training runs, checkpoints, and metrics.
 - [Notebooks](../notebooks/) – Jupyter notebooks for baseline experiments, transformer evaluation, model comparison, error and metrics analysis.
 - [Results](../results/) – Saved metrics, model comparisons, logs and visual evaluation artifacts
 - [Models](../models/saved/) – Stored classical and transformer model checkpoints, tokenizers, and label mappings.
