@@ -502,7 +502,7 @@ In summary:
 - The **baseline** remains valuable for low-latency pre-filtering.
 - The **transformer tier** forms the semantic backbone of the moderation system, while the **LLM tier** provides interpretive verification where needed.
 
-### 6.2 Error Analysis - TODO
+### 6.2 Error Analysis
 
 Error analysis revealed several recurring misclassification patterns:
 - **False negatives** commonly occurred in borderline or sarcastic comments where toxicity was context-dependent (e.g., “you’re such a genius” used ironically).  
@@ -537,17 +537,70 @@ Each model presents a distinct balance between performance and operational feasi
 **Summary:**  
 Transformers, particularly ToxicBERT, mark a decisive leap forward in accuracy and contextual understanding compared to classical baselines, albeit with higher computational demands. The multi-phase architecture offers a pragmatic path forward: leveraging the speed of classical models, the semantic power of transformers, and the reasoning depth of LLMs to achieve a scalable, context-aware, and production-ready moderation pipeline.
 
-## 7. System Integration (SyntaxBase)
 
-This section will describe how the trained models will be incorporated into the production moderation workflow. Key points / TODOs:
+## 7. System Integration (SyntaxBase Moderation Microservice)
+This section will describe how the trained models will be incorporated into the production moderation workflow. The SyntaxBase Moderation Microservice integrates a **multi-phase, hybrid toxicity detection pipeline** into a production-ready system. The integration prioritizes modularity, scalability, and real-time performance while retaining interpretability and contextual understanding.  
 
-- Wrap transformer models as **FastAPI microservices** for real-time inference.
-- Integrate the classical XGBoost baseline for quick filtering before transformer inference.
-- Implement optional **LLM verification layer** for uncertain or borderline comments.
-- Track predictions and performance metrics in production (e.g., MLflow, Weights & Biases).
-- Monitor system performance and retrain models periodically based on new data.
+### Key Components
 
----
+- **Classical ML Layer (Phase 1)**  
+  TF-IDF combined with numeric text features (e.g., word/character counts, punctuation, capitalization, swear-word detection) is implemented using XGBoost as a lightweight, first-pass filter. This layer provides rapid, low-latency predictions for bulk content, ensuring throughput is maintained in high-volume moderation scenarios.  
+
+- **Transformer Layer (Phase 2)**  
+  DistilBERT and ToxicBERT are exposed as independent **FastAPI microservices** for contextual semantic analysis. Each transformer evaluates comments for nuanced toxicity, generating label predictions along with confidence scores. The microservices architecture allows horizontal scaling, independent updates, and isolated performance tuning.  
+
+- **LLM Verification Layer (Phase 3)**  
+  Comments with **low transformer confidence or label disagreement** are routed to a preloaded LLM. This reasoning layer handles edge cases, sarcasm, humor, and borderline toxicity that classical or transformer models cannot fully resolve. LLM verification is triggered selectively to balance computational efficiency with interpretive accuracy.  
+
+- **Dockerized Orchestration**  
+  Each model runs in a dedicated Docker container, orchestrated via **Docker Compose**. The API aggregates outputs from all services, computes the final label, and returns a comprehensive response including intermediate model predictions, confidence scores, and optional reasoning from the LLM.  
+
+- **Data and Artifact Management**  
+  - Models and checkpoints are stored in `models/saved/` with separate directories for classical, DistilBERT, ToxicBERT, and LLM artifacts.  
+  - Intermediate metrics, predictions, and evaluation reports are stored under `results/metrics` and `results/comparisons`.  
+  - Training logs and experiment documentation are maintained in `docs/training_logs.md` for reproducibility.  
+
+- **API Endpoint**  
+  The microservice exposes a single REST endpoint `/classify` accepting JSON comments:  
+
+  ```json
+  {
+    "text": "Your comment here"
+  }
+  ```
+  and returning the final label along with intermediate predictions and optional LLM reasoning.
+
+- **Scalability and Extensibility**
+
+  Each microservice can be scaled independently based on load. Future models or verification layers can be integrated without modifying the core API. Monitoring and automated retraining pipelines can be incorporated using tools like MLflow or Weights & Biases.
+
+### Integration Flow (Sequence)
+  ```mermaid
+  sequenceDiagram
+    participant Admin
+    participant Forum
+    participant API
+    participant Classical
+    participant BERT
+    participant ToxicBERT
+    participant LLM
+
+    Admin->>Forum: Post comment
+    Forum->>API: Send JSON comment
+    API->>Classical: Phase 1 prediction
+    Classical-->>API: Classical label
+    API->>BERT: Phase 2 prediction
+    BERT-->>API: Label + Confidence
+    API->>ToxicBERT: Phase 2b prediction
+    ToxicBERT-->>API: Label + Confidence
+    alt BERT & ToxicBERT disagree or uncertain
+        API->>LLM: Phase 3 LLM verification
+        LLM-->>API: Verified label + reasoning
+    end
+    API-->>Forum: Return final label with pipeline details
+    Forum-->>Admin: Display moderation result
+  ```
+
 
 ## 8. Conclusion
 

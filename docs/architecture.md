@@ -26,7 +26,7 @@ The system consists of three main layers:
 ---
 
 ## 2. Data Flow
-### Overall Model Pipeline
+### 2.1 Overall Model Pipeline
 
 ```mermaid
 flowchart TD
@@ -39,7 +39,7 @@ flowchart TD
     
     %% Transformer Verification
     D --> E[Transformer Model Verification DistilBERT / ToxicBERT]
-    E --> F{Transformer Confidence >= 0.9?}
+    E --> F{Transformer Confidence >= 0.8?}
     
     %% Decision Path
     F -->|Yes| G[Pass Label]
@@ -63,50 +63,131 @@ flowchart TD
     E --> P[Metrics: Accuracy, Macro F1, Runtime, Params]
     H --> Q[Metrics: Accuracy, Macro F1, Inference Latency]
 ```
-
 ---
+### 2.2 Decision flow
+
+```mermaid
+graph LR
+    A[Start: Comment Received] --> B[Classical ML Prediction]
+    B --> C{BERT/ToxicBERT Confidence >0.8?}
+    C -->|Higher| D[Use Transformer Label]
+    C -->|Lower or Disagreement| E[LLM Verification]
+    E --> F[Final Label]
+```
+
+>**Note**: A disagreement between the transformer models occurs when DistilBERT and ToxicBERT produce different predicted labels, regardless of confidence score.
 
 ## 3. Microservice Integration
 
-- **API:** FastAPI backend wrapping DistilBERT/ToxicBERT
+The SyntaxBase Moderation Microservice is fully containerized and modular. Each model/service runs in its own Docker container, orchestrated via Docker Compose. The API exposes a single endpoint for comment moderation, implementing a **hybrid multi-phase pipeline**:
+
+1. **Classical ML:** Fast, rule-based moderation using numeric and TF-IDF features.
+2. **Transformer Models:** DistilBERT and ToxicBERT provide semantic analysis with confidence scores.
+3. **LLM Verification:** If BERT/ToxicBERT disagree or are uncertain, a preloaded LLM evaluates the comment for final moderation.
+
+**API Service:**
+- **Framework:** FastAPI
 - **Endpoint:** `/classify`
-- **Input:** JSON comment
-- **Output:** JSON label (`safe`, `mild`, `toxic`, `severe`)
-- **Hybrid Mode:** Optional LLM verification if transformer confidence < threshold
-- **Deployment:** Docker or MCP service (planned for production-scale testing)
+- **Input:** JSON comment, e.g. `{"text": "Your comment here"}`
+- **Output:** JSON with:
+  - `final_label` (safe, mild, toxic, severe)
+  - Intermediate labels and confidence from classical, BERT, and ToxicBERT
+  - Optional `llm_reasoning` when LLM is invoked
+
+### 3.1 Sequence Diagram
 
 ```mermaid
 sequenceDiagram
-    participant User(admin)
+    participant Admin
     participant Forum
-    participant Microservice
-    participant Model
+    participant API
+    participant Classical
+    participant BERT
+    participant ToxicBERT
     participant LLM
 
-    User->>Forum: Post Comment
-    Forum->>Microservice: Send JSON comment
-    Microservice->>Model: Tokenize & Predict
-    Model-->>Microservice: Label + Confidence
-    alt Confidence < Threshold
-        Microservice->>LLM: Verify Comment
-        LLM-->>Microservice: Verified Label
+    User->>Forum: Post comment
+    Forum->>API: Send JSON comment
+    API->>Classical: Phase 1 prediction
+    Classical-->>API: Classical label
+    API->>BERT: Phase 2 prediction
+    BERT-->>API: Label + Confidence
+    API->>ToxicBERT: Phase 2b prediction
+    ToxicBERT-->>API: Label + Confidence
+    alt BERT & ToxicBERT disagree or uncertain
+        API->>LLM: Phase 3 LLM verification
+        LLM-->>API: Verified label + reasoning
     end
-    Microservice-->>Forum: Return Final Label
-    Forum-->>User(admin): Display Moderation Result
-
+    API-->>Forum: Return final label with pipeline details
+    Forum-->>Admin: Display moderation result
 ```
+
+---
+
+### 3.2 Deployment diagram
+
+All services are Dockerized and networked together via Docker Compose.
+
+Ports:
+- `classical`: 7001
+- `bert`: 7002
+- `toxicbert`: 7003
+- `llm`: 7004
+- `api`: 8000
+
+```mermaid 
+graph LR
+
+    subgraph UserFacing[Client + Forum]
+        FORUM[SyntaxBase Forum Frontend + Backend]
+        FORUM -->|HTTP POST /classify| API
+    end
+
+    subgraph Network[Docker Network]
+        API[API Gateway FastAPI Port 8000]
+        CLASSICAL[Classical Model Port 7001]
+        BERT[DistilBERT Model Port 7002]
+        TOXIC[ToxicBERT Model Port 7003]
+        LLM[LLM Reasoning Port 7004]
+        MON[Monitoring Future: MLflow/W&B]
+    end
+
+    subgraph Volumes[Docker Volumes]
+        V1[(models:/models)]
+        V2[(logs:/logs)]
+    end
+
+    API --> CLASSICAL
+    API --> BERT
+    API --> TOXIC
+    API --> LLM
+
+    CLASSICAL --- V1
+    BERT --- V1
+    TOXIC --- V1
+    LLM --- V1
+    API --> V2
+```
+
+---
+
+### 3.3 Metrics and artifact flow
+
+```mermaid 
+flowchart LR
+    Raw[Raw Comments] --> Preprocessing[Preprocessing Pipeline]
+    Preprocessing --> Classical
+    Classical --> Transformers
+    Transformers --> LLM
+    LLM --> API
+    API --> Metrics[Metrics Storage: results/metrics, results/comparisons]
+    API --> Models[Models Storage: models/saved]
+```
+>**Note:** This flowchart reflects the consolidated results, metrics, and comparative analyses obtained from the final evaluation phase.
+
 ---
 
 ## 4. Artifact Storage
-
 - **Models:** `models/saved/`
 - **Metrics & Results:** `results/metrics`, `results/comparisons`
 - **Training Logs:** `docs/training_logs.md`
-
----
-
-## 5. Notes & Future Improvements
-
-- Add real-time LLM fallback for edge cases
-- Experiment with caching or batched inference for throughput
-- Multi-lingual toxicity detection in future iterations
