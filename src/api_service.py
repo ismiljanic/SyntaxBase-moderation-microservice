@@ -1,9 +1,8 @@
-# src/api_service.py
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from src.inference import classify_text_api
-import uvicorn
 from typing import Optional
+import uvicorn
 
 app = FastAPI(title="SyntaxBase Moderation Microservice")
 
@@ -25,4 +24,4 @@ def classify(comment: Comment):
         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
-    uvicorn.run("src.api_service:app", host="0.0.0.0", port=8000, reload=False)
+    uvicorn.run("src.api_service:app", host="0.0.0.0", port=8000)
