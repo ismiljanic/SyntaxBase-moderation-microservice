@@ -53,14 +53,14 @@ The system consists of three main layers:
 flowchart TD
     %% User Input
     A[User Comment] --> B[Preprocessing Pipeline]
-    B --> C[Classical ML Model TF-IDF + XGBoost]
+    B --> C[TF-IDF + XGBoost]
     
     %% Classical Output
-    C --> D[Primary Label & Confidence Score]
+    C --> D[Primary Label & Confidence]
     
     %% Transformer Verification
-    D --> E[Transformer Model Verification DistilBERT / ToxicBERT]
-    E --> F{Transformer Confidence >= 0.8?}
+    D --> E[DistilBERT & ToxicBERT]
+    E --> F{Confidence >= 0.8?}
     
     %% Decision Path
     F -->|Yes| G[Pass Label]
@@ -74,15 +74,15 @@ flowchart TD
     %% Artifacts & Metrics
     class B,C,E,H artifacts;
 
-    B:::artifacts --> K[Data: tokenized text, numeric features]
-    C:::artifacts --> L[Saved model: xgboost.pkl Vectorizer: vectorizer.pkl]
-    E:::artifacts --> M[Saved checkpoint: Best checkpoint, Tokenizer + Label mapping]
-    H:::artifacts --> N[LLM Prompt Templates + Optional LoRA weights]
+    B:::artifacts --> K[Tokenized text + features]
+    C:::artifacts --> L[Saved model]
+    E:::artifacts --> M[Saved checkpoint]
+    H:::artifacts --> N[LLM Prompt Templates]
 
     %% Metrics
-    D --> O[Metrics: Accuracy, Macro F1, Per-class F1]
-    E --> P[Metrics: Accuracy, Macro F1, Runtime, Params]
-    H --> Q[Metrics: Accuracy, Macro F1, Inference Latency]
+    D --> O[Metrics: Accuracy, Macro F1]
+    E --> P[Metrics: Accuracy, Macro F1]
+    H --> Q[Metrics: Accuracy, Macro F1]
 ```
 ---
 ### 2.2 Decision flow
@@ -90,7 +90,7 @@ flowchart TD
 ```mermaid
 graph LR
     A[Start: Comment Received] --> B[Classical ML Prediction]
-    B --> C{BERT/ToxicBERT Confidence >0.8?}
+    B --> C{BERT Confidence >0.8?}
     C -->|Higher| D[Use Transformer Label]
     C -->|Lower or Disagreement| E[LLM Verification]
     E --> F[Final Label]
@@ -165,12 +165,12 @@ graph LR
     end
 
     subgraph Network[Docker Network]
-        API[API Gateway FastAPI Port 8000]
+        API[FastAPI Port 8000]
         CLASSICAL[Classical Model Port 7001]
         BERT[DistilBERT Model Port 7002]
         TOXIC[ToxicBERT Model Port 7003]
         LLM[LLM Reasoning Port 7004]
-        MON[Monitoring Future: MLflow/W&B]
+        MON[Future: MLflow/W&B]
     end
 
     subgraph Volumes[Docker Volumes]
@@ -201,8 +201,8 @@ flowchart LR
     Classical --> Transformers
     Transformers --> LLM
     LLM --> API
-    API --> Metrics[Metrics Storage: results/metrics, results/comparisons]
-    API --> Models[Models Storage: models/saved]
+    API --> Metrics[Metrics Storage]
+    API --> Models[Models Storage]
 ```
 >**Note:** This flowchart reflects the consolidated results, metrics, and comparative analyses obtained from the final evaluation phase.
 

@@ -172,7 +172,7 @@ SyntaxBase-moderation-microservice/
 
 ## 1. Clone the repository
 ```bash
-git clone https://github.com/yourusername/SyntaxBase-moderation-microservice.git
+git clone https://github.com/ismiljanic/SyntaxBase-moderation-microservice.git
 cd SyntaxBase-moderation-microservice
 ```
 
