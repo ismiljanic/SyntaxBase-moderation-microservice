@@ -1,0 +1,15 @@
+{
+    "model": "ToxicBERT",
+    "total_samples": 139,
+    "total_errors": 114,
+    "false_negative_count": 114,
+    "false_positive_count": 114,
+    "accuracy": 0.17985611510791366,
+    "macro_f1": 0.14034965034965036,
+    "per_class_f1": {
+        "mild": 0.3090909090909091,
+        "safe": 0.06,
+        "severe": 0.0,
+        "toxic": 0.19230769230769232
+    }
+}
