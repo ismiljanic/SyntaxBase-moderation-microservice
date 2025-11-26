@@ -1,0 +1,15 @@
+{
+    "model": "DistilBERT",
+    "total_samples": 139,
+    "total_errors": 111,
+    "false_negative_count": 111,
+    "false_positive_count": 111,
+    "accuracy": 0.2014388489208633,
+    "macro_f1": 0.12369423558897243,
+    "per_class_f1": {
+        "mild": 0.384,
+        "safe": 0.06315789473684211,
+        "severe": 0.0,
+        "toxic": 0.047619047619047616
+    }
+}
