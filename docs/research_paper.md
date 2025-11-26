@@ -504,14 +504,28 @@ In summary:
 
 ### 6.2 Error Analysis
 
-Error analysis revealed several recurring misclassification patterns:
-- **False negatives** commonly occurred in borderline or sarcastic comments where toxicity was context-dependent (e.g., “you’re such a genius” used ironically).  
-- **False positives** were occasionally triggered by emotionally charged but non-toxic language (e.g., political or passionate debate comments).  
-- **Domain shift** was evident in comments with slang, memes, or context-specific abbreviations not well represented in the Jigsaw dataset.  
+A detailed error analysis was performed across all models to identify patterns in misclassification and contextual limitations.
 
-LLM evaluation highlighted:
-- Superior handling of indirect toxicity and sarcasm compared to classical and transformer models.
-- Occasional over-flagging of neutral comments, suggesting the need for confidence thresholds or hybrid verification with transformer models.
+**General Observations:**
+- **False negatives** frequently occurred in borderline, sarcastic, or obfuscated comments, where toxicity depended on subtle context or implied meaning. Examples include masked threats or ironic statements (e.g., “you’re such a genius” used sarcastically).  
+- **False positives** were occasionally triggered by emotionally charged or strongly opinionated but non-toxic text, including political debates or passionate discussions.  
+- **Domain shift** was evident in comments with slang, memes, numeric/character substitutions (e.g., “L0L imagine thinking you’re sm@rt, u cl0wn”), and context-specific abbreviations not represented in the training dataset.  
+
+**Classical and Transformer Models:**
+- Classical TF-IDF + XGBoost models are fast and interpretable but struggle with obfuscation and minority classes (`severe`/`toxic`).  
+- DistilBERT and ToxicBERT improved detection of subtle toxicity, yet errors persisted for highly obfuscated, sarcastic, or context-dependent comments.  
+- ToxicBERT’s domain-specific pretraining helped slightly with indirect toxicity, but misclassifications still occurred on heavily masked threats.
+
+**LLM Evaluation (Qwen3-4B-Thinking):**
+- Demonstrated superior contextual understanding, successfully reconstructing meaning from obfuscated or sarcastic text.  
+- Handled minority classes and complex comment structures better than both classical and transformer models.  
+- Occasionally flagged neutral comments as toxic, highlighting the need for confidence thresholds or hybrid verification using transformer models for balanced precision-recall trade-offs.
+
+**Key Insights:**
+- Obfuscation in text remains a critical challenge, emphasizing the value of semantic reasoning over purely lexical approaches.  
+- A hierarchical or hybrid approach, combining classical filters, transformers, and LLM reasoning, maximizes both efficiency and nuanced toxicity detection.  
+- Per-class analysis confirms that LLMs achieve the most consistent performance across `mild`, `safe`, `severe`, and `toxic` categories, while classical and transformer models exhibit notable weaknesses in minority classes.
+
 
 ### 6.3 Computational Trade-offs
 

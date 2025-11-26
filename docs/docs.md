@@ -720,14 +720,27 @@ In summary:
 
 ### 6.2 Error Analysis
 
-Error analysis revealed several recurring misclassification patterns:
-- **False negatives** commonly occurred in borderline or sarcastic comments where toxicity was context-dependent (e.g., “you’re such a genius” used ironically).  
-- **False positives** were occasionally triggered by emotionally charged but non-toxic language (e.g., political or passionate debate comments).  
-- **Domain shift** was evident in comments with slang, memes, or context-specific abbreviations not well represented in the Jigsaw dataset.  
+A detailed error analysis was performed across all models to identify patterns in misclassification and contextual limitations.
 
-LLM evaluation highlighted:
-- Superior handling of indirect toxicity and sarcasm compared to classical and transformer models.
-- Occasional over-flagging of neutral comments, suggesting the need for confidence thresholds or hybrid verification with transformer models.
+**General Observations:**
+- **False negatives** frequently occurred in borderline, sarcastic, or obfuscated comments, where toxicity depended on subtle context or implied meaning. Examples include masked threats or ironic statements (e.g., “you’re such a genius” used sarcastically).  
+- **False positives** were occasionally triggered by emotionally charged or strongly opinionated but non-toxic text, including political debates or passionate discussions.  
+- **Domain shift** was evident in comments with slang, memes, numeric/character substitutions (e.g., “L0L imagine thinking you’re sm@rt, u cl0wn”), and context-specific abbreviations not represented in the training dataset.  
+
+**Classical and Transformer Models:**
+- Classical TF-IDF + XGBoost models are fast and interpretable but struggle with obfuscation and minority classes (`severe`/`toxic`).  
+- DistilBERT and ToxicBERT improved detection of subtle toxicity, yet errors persisted for highly obfuscated, sarcastic, or context-dependent comments.  
+- ToxicBERT’s domain-specific pretraining helped slightly with indirect toxicity, but misclassifications still occurred on heavily masked threats.
+
+**LLM Evaluation (Qwen3-4B-Thinking):**
+- Demonstrated superior contextual understanding, successfully reconstructing meaning from obfuscated or sarcastic text.  
+- Handled minority classes and complex comment structures better than both classical and transformer models.  
+- Occasionally flagged neutral comments as toxic, highlighting the need for confidence thresholds or hybrid verification using transformer models for balanced precision-recall trade-offs.
+
+**Key Insights:**
+- Obfuscation in text remains a critical challenge, emphasizing the value of semantic reasoning over purely lexical approaches.  
+- A hierarchical or hybrid approach, combining classical filters, transformers, and LLM reasoning, maximizes both efficiency and nuanced toxicity detection.  
+- Per-class analysis confirms that LLMs achieve the most consistent performance across `mild`, `safe`, `severe`, and `toxic` categories, while classical and transformer models exhibit notable weaknesses in minority classes.
 
 ### 6.3 Computational Trade-offs
 
@@ -1292,5 +1305,54 @@ This document records all training runs, their configurations, checkpoints, and 
 - Few-shot prompting yields higher recall on subtle toxicity.  
 - Computational cost per inference remains the bottleneck for deployment.  
 - DistilBERT still offers best trade-off for real-time moderation.  
+
+---
+
+## Comparative Error Analysis
+
+### Dataset Description - Overview (error_analysis_dataset, 139 comments)
+
+This evaluation dataset is a compact, hand‑curated collection of user comments engineered to stress‑test moderation models under realistic adversarial conditions. Each entry contains:
+
+- **original_comment** — the raw user text, often intentionally obfuscated (leet‑speak, symbol substitution, spacing/character distortion).
+- **expected_label** — the ground‑truth toxicity severity.
+- **acceptable_labels** — alternative classifications considered logically defendable.
+- **rationale** — brief annotation explaining why the comment falls under the specified category.
+- **cleaned_comment** — a normalized version of the text after removing obfuscation artifacts.
+
+The dataset focuses heavily on **obfuscated toxic language**, a common tactic used to evade automated filters. By injecting character substitutions (`0` → `o`, `*` masking profanity, etc.), the samples simulate how real users attempt to bypass keyword‑based systems. These patterns allow us to evaluate whether each model can:
+
+- recover semantic meaning despite surface noise,  
+- correctly classify threats, insults, and harmful intent,  
+- avoid collapsing into majority classes (`safe`, `mild`) when confronted with distorted input,  
+- demonstrate robustness across varying levels of toxicity severity.
+
+Although small in size, the dataset is intentionally **high‑signal**. Each sample tests a unique failure mode: obfuscated death threats, disguised insults, coded harassment, and group‑directed harm. The primary objective is to expose brittle behavior in classical and BERT‑based models while benchmarking LLM reasoning capability in zero‑shot settings.
+
+The final column, **cleaned_comment**, reflects the canonical semantic content after preprocessing which is helpful for validating whether a model internally reconstructs meaning or merely reacts to surface patterns.
+
+## Results
+
+| Model | Accuracy | Macro F1 | Total Errors | Total Samples |
+|--------|-----------|-----------|--------------|---------------|
+| Qwen3-4B-Thinking | 0.8273 | 0.7478 | - | 139 |
+| Classical_XGBoost | 0.3885 | 0.1912 | 85 | 139 |
+| ToxicBERT | 0.1799 | 0.1403 | 114 | 139 |
+| DistilBERT | 0.2014 | 0.1237 | 111 | 139 |
+
+**Notes:**
+- Qwen3-4B-Thinking-2507 clearly outperforms classical and BERT-based models in both accuracy and macro F1.
+- Classical_XGBoost is faster but struggles on minority classes (`severe`/`toxic`).
+- BERT models (DistilBERT and ToxicBERT) have very low F1 on minority classes, mostly predicting `safe` or `mild`.
+- Dataset is relatively small; evaluation is zero-shot without fine-tuning for LLM.
+
+---
+
+### Observations
+
+- **Qwen3-4B-Thinking-2507** handles minority classes much better than BERT and classical models.
+- **BERT-based models** frequently misclassify `severe` and `toxic` examples as `safe` or `mild`.
+- **Classical_XGBoost** shows limited class-specific performance (per-class F1 not available from JSON).
+- Overall, **LLM-based approach** achieves higher consistency and accuracy on small, batch-evaluated datasets.
 
 ---
