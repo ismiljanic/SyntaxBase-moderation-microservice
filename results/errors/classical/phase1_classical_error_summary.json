@@ -1,0 +1,9 @@
+{
+    "model": "Classical_XGBoost",
+    "total_samples": 139,
+    "total_errors": 85,
+    "false_negative_count": 85,
+    "false_positive_count": 85,
+    "accuracy": 0.38848920863309355,
+    "macro_f1": 0.19121285327589718
+}
