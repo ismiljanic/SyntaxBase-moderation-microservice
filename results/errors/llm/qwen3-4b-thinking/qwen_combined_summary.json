@@ -1,0 +1,38 @@
+{
+    "model": "Qwen3-4B-Thinking",
+    "total_samples": 139,
+    "accuracy": 0.8273381294964028,
+    "macro_f1": 0.7477683993198931,
+    "per_class_f1": {
+        "mild": 0.8715083798882681,
+        "safe": 0.8695652173913043,
+        "severe": 0.5,
+        "toxic": 0.75
+    },
+    "confusion_matrix": {
+        "mild": {
+            "mild": 78,
+            "safe": 2,
+            "severe": 0,
+            "toxic": 1
+        },
+        "safe": {
+            "mild": 0,
+            "safe": 10,
+            "severe": 0,
+            "toxic": 0
+        },
+        "severe": {
+            "mild": 5,
+            "safe": 1,
+            "severe": 3,
+            "toxic": 0
+        },
+        "toxic": {
+            "mild": 15,
+            "safe": 0,
+            "severe": 0,
+            "toxic": 24
+        }
+    }
+}

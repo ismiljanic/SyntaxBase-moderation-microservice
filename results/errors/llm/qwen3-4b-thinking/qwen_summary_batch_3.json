@@ -1,0 +1,28 @@
+{
+    "model": "Qwen3-4B-Thinking",
+    "batch": "3",
+    "accuracy": 0.8125,
+    "macro_f1": 0.5896296296296296,
+    "per_class_f1": {
+        "mild": 0.88,
+        "safe": 0.8888888888888888,
+        "toxic": 0.0
+    },
+    "confusion_matrix": {
+        "mild": {
+            "mild": 22,
+            "safe": 1,
+            "toxic": 0
+        },
+        "safe": {
+            "mild": 0,
+            "safe": 4,
+            "toxic": 0
+        },
+        "toxic": {
+            "mild": 5,
+            "safe": 0,
+            "toxic": 0
+        }
+    }
+}
